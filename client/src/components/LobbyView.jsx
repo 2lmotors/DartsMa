@@ -76,7 +76,16 @@ export default function LobbyView({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <button
+            onClick={onOpenStats}
+            className="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700/80 text-emerald-400 hover:text-emerald-300 font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow"
+            title="Consulter mes statistiques"
+          >
+            <BarChart3 className="w-4 h-4 text-emerald-400" />
+            <span className="hidden xs:inline">Stats</span>
+          </button>
+
           <button
             onClick={handleToggleMute}
             className={`p-2 rounded-xl border transition active:scale-95 ${
@@ -109,46 +118,37 @@ export default function LobbyView({
         </div>
       </header>
 
-      {/* Centered Navigation Menu Bar with Smooth Touch Scrolling for Mobile/Tablet */}
-      <div className="flex items-center justify-start sm:justify-center gap-2 mb-3 overflow-x-auto scrollbar-none py-1 -mx-1 px-1">
+      {/* Centered Navigation Menu Bar (Tournoi, Mon Compte, Admin) */}
+      <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 w-full">
         <button
           onClick={onOpenTournament}
-          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-emerald-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 text-amber-300 border border-amber-500/40 text-xs font-black flex items-center gap-1.5 transition shadow active:scale-95 shrink-0"
+          className="flex-1 max-w-[160px] py-2 px-2.5 sm:px-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-emerald-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 text-amber-300 border border-amber-500/40 text-xs font-black flex items-center justify-center gap-1.5 transition shadow active:scale-95"
           title="Accéder au Grand Tournoi DartsMa Live"
         >
-          <Trophy className="w-4 h-4 text-amber-400" />
-          <span>Tournoi</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-        </button>
-
-        <button
-          onClick={onOpenStats}
-          className="px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-black flex items-center gap-1.5 transition shadow active:scale-95 shrink-0"
-          title="Consulter mes statistiques"
-        >
-          <BarChart3 className="w-4 h-4 text-emerald-400" />
-          <span>Stats</span>
+          <Trophy className="w-4 h-4 text-amber-400 shrink-0" />
+          <span className="truncate">Tournoi</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
         </button>
 
         {currentUser?.email && (
           <button
             onClick={() => setShowAccountModal(true)}
-            className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-black flex items-center gap-1.5 transition shadow active:scale-95 shrink-0"
+            className="flex-1 max-w-[160px] py-2 px-2.5 sm:px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-black flex items-center justify-center gap-1.5 transition shadow active:scale-95"
             title="Mon compte et modification de mot de passe"
           >
-            <Lock className="w-4 h-4 text-emerald-400" />
-            <span>Mon Compte</span>
+            <Lock className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="truncate">Mon Compte</span>
           </button>
         )}
 
         {currentUser?.role === 'admin' && (
           <button
             onClick={onOpenAdmin}
-            className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-black flex items-center gap-1.5 transition shadow active:scale-95 shrink-0"
+            className="flex-1 max-w-[130px] py-2 px-2.5 sm:px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-black flex items-center justify-center gap-1.5 transition shadow active:scale-95"
             title="Panneau de gestion Administrateur"
           >
-            <Shield className="w-4 h-4 text-amber-400" />
-            <span>Admin</span>
+            <Shield className="w-4 h-4 text-amber-400 shrink-0" />
+            <span className="truncate">Admin</span>
           </button>
         )}
       </div>
