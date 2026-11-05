@@ -18,6 +18,7 @@ export default function LobbyView({
   onOpenAuth,
   onOpenAdmin,
   onOpenStats,
+  onOpenTournament,
   onLogout,
   backendUrl,
   onUserUpdated
@@ -95,6 +96,15 @@ export default function LobbyView({
           >
             <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
             <span>Stats</span>
+          </button>
+
+          <button
+            onClick={onOpenTournament}
+            className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 to-emerald-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-black flex items-center gap-1 transition shadow active:scale-95"
+            title="Accéder au Grand Tournoi DartsMa Live"
+          >
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <span>Tournoi</span>
           </button>
 
           {currentUser?.email && (

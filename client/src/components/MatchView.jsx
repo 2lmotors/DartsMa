@@ -669,6 +669,11 @@ export default function MatchView({
           </button>
           <div className="flex items-center gap-1">
             <span className="text-xs font-black tracking-wider text-emerald-400">DARTSMA</span>
+            {gameState?.isTournamentMatch && (
+              <span className="text-[10px] bg-amber-500/25 text-amber-300 border border-amber-500/50 px-1.5 py-0.2 rounded font-black flex items-center gap-0.5 animate-pulse">
+                🏆 TOURNOI
+              </span>
+            )}
             <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded font-bold">
               {gameState?.gameType || '501'}
             </span>

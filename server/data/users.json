@@ -241,5 +241,143 @@
       "history": []
     },
     "isEmailVerified": true
+  },
+  {
+    "id": "usr_1793895782500_iq2rn",
+    "username": "Joueur_1",
+    "email": "p1_1793895782499@darts.com",
+    "password": "69046aaa4ec05f4e7e3463f1505e4460:7960caf35ee7660349df14ee25cc8da3677ae90a56d9c4ec7e52ac8eb8a6e6b8e6b898fea8f73833d81470c1e1fecd8cb6e6dac446cb181a11ac940eabb19eff",
+    "role": "user",
+    "isBanned": false,
+    "isEmailVerified": true,
+    "createdAt": "2026-11-05T16:23:02.561Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "legsPlayed": 0,
+      "legsWon": 0,
+      "legsLost": 0,
+      "totalDartsThrown": 0,
+      "totalPointsScored": 0,
+      "averagePerDart": 0,
+      "averagePerMatch": 0,
+      "history": []
+    }
+  },
+  {
+    "id": "usr_1793895782566_ffjnw",
+    "username": "Joueur_2",
+    "email": "p2_1793895782565@darts.com",
+    "password": "c634bd950af13f953a6e246c9417065d:dce49324ef34a617ead793b040b7a22e62d3a5f538eaed20a15ee7f59f114cf449d110fd3de920dc93ada6df4940e994b2feb98dcdd817084c686f24ca0cb053",
+    "role": "user",
+    "isBanned": false,
+    "isEmailVerified": true,
+    "createdAt": "2026-11-05T16:23:02.628Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "legsPlayed": 0,
+      "legsWon": 0,
+      "legsLost": 0,
+      "totalDartsThrown": 0,
+      "totalPointsScored": 0,
+      "averagePerDart": 0,
+      "averagePerMatch": 0,
+      "history": []
+    }
+  },
+  {
+    "id": "usr_1793895782632_r79mh",
+    "username": "Joueur_3",
+    "email": "p3_1793895782631@darts.com",
+    "password": "d890623798bfc6626ff7b5ac7b30dd04:0c8cd427386921b033a0db98978028e6b91ad8fe4a6fffce26c3139fa5dffe16cd29a18e5c98e95ecb632a740c4ebb218d8bc2a37fc68d4eec89782de0cc6ea8",
+    "role": "user",
+    "isBanned": false,
+    "isEmailVerified": true,
+    "createdAt": "2026-11-05T16:23:02.692Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "legsPlayed": 0,
+      "legsWon": 0,
+      "legsLost": 0,
+      "totalDartsThrown": 0,
+      "totalPointsScored": 0,
+      "averagePerDart": 0,
+      "averagePerMatch": 0,
+      "history": []
+    }
+  },
+  {
+    "id": "usr_1793895782697_63bk7",
+    "username": "Joueur_4",
+    "email": "p4_1793895782696@darts.com",
+    "password": "6d3d7fc7c8495970693bbfacc2e8aff6:ca0638d5f3dc9ec3bef6bb5f339bda114f8c0d989619d9ed9a907af06d3062a66c0eacef1f7bd64f501007786665b65eb8ced0f4015240b998b0b36ed91fbaf3",
+    "role": "user",
+    "isBanned": false,
+    "isEmailVerified": true,
+    "createdAt": "2026-11-05T16:23:02.757Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "legsPlayed": 0,
+      "legsWon": 0,
+      "legsLost": 0,
+      "totalDartsThrown": 0,
+      "totalPointsScored": 0,
+      "averagePerDart": 0,
+      "averagePerMatch": 0,
+      "history": []
+    }
+  },
+  {
+    "id": "usr_1793895782762_2k5kp",
+    "username": "Joueur_5",
+    "email": "p5_1793895782761@darts.com",
+    "password": "c059dae878faa595fc3d7eb991d37234:967e45d75af54f8b01aa11850c87f75c9523c820cd892a12752648d7d8214516c302f267c95c582fbfe3b12fadcecede328732ca39d978c2014d83efb4086fea",
+    "role": "user",
+    "isBanned": false,
+    "isEmailVerified": true,
+    "createdAt": "2026-11-05T16:23:02.822Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "legsPlayed": 0,
+      "legsWon": 0,
+      "legsLost": 0,
+      "totalDartsThrown": 0,
+      "totalPointsScored": 0,
+      "averagePerDart": 0,
+      "averagePerMatch": 0,
+      "history": []
+    }
+  },
+  {
+    "id": "usr_1793895782825_n5zfe",
+    "username": "Joueur_6",
+    "email": "p6_1793895782824@darts.com",
+    "password": "4093b80e6cc9e4067a0ff41627edc47e:23c1b2f61e4bcc46f92ba6adced07f8b3c51b1d961ff60fdc7b825e712b9891766087cbd80c5a97b688a01ce4490ca81b17abfb9186d1c2cb02ff8dbcb2fab1d",
+    "role": "user",
+    "isBanned": false,
+    "isEmailVerified": true,
+    "createdAt": "2026-11-05T16:23:02.885Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "legsPlayed": 0,
+      "legsWon": 0,
+      "legsLost": 0,
+      "totalDartsThrown": 0,
+      "totalPointsScored": 0,
+      "averagePerDart": 0,
+      "averagePerMatch": 0,
+      "history": []
+    }
   }
 ]

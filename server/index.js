@@ -6,6 +6,7 @@ const path = require('path');
 const os = require('os');
 const db = require('./db');
 const mailer = require('./mailer');
+const tournamentManager = require('./tournament');
 
 const app = express();
 app.use(cors());
@@ -429,6 +430,179 @@ app.post('/api/admin/user/:id/toggle-role', (req, res) => {
   }
 });
 
+// --- TOURNAMENT REST ENDPOINTS ---
+app.get('/api/tournament/active', (req, res) => {
+  try {
+    const tournament = tournamentManager.getActiveTournament();
+    const standings = tournament ? tournamentManager.getStandings(tournament) : [];
+    res.json({ success: true, tournament, standings });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/tournament/register', (req, res) => {
+  try {
+    const { tournamentId, userId } = req.body;
+    const user = db.getUserById(userId);
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+    const tournament = tournamentManager.registerPlayer(tournamentId, user);
+    const standings = tournamentManager.getStandings(tournament);
+    io.emit('tournament:updated', { tournament, standings });
+    res.json({ success: true, tournament, standings });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/tournament/unregister', (req, res) => {
+  try {
+    const { tournamentId, userId } = req.body;
+    const tournament = tournamentManager.unregisterPlayer(tournamentId, userId);
+    const standings = tournamentManager.getStandings(tournament);
+    io.emit('tournament:updated', { tournament, standings });
+    res.json({ success: true, tournament, standings });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/tournament/admin/start', (req, res) => {
+  const adminId = req.headers['x-admin-id'];
+  const admin = db.getUserById(adminId);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès réservé aux administrateurs.' });
+  }
+  try {
+    const { tournamentId, maxPlayersLimit } = req.body;
+    const tournament = tournamentManager.startTournament(tournamentId, maxPlayersLimit);
+    const standings = tournamentManager.getStandings(tournament);
+    io.emit('tournament:updated', { tournament, standings });
+    res.json({ success: true, tournament, standings });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/tournament/admin/prizes', (req, res) => {
+  const adminId = req.headers['x-admin-id'];
+  const admin = db.getUserById(adminId);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès réservé aux administrateurs.' });
+  }
+  try {
+    const { tournamentId, prizes } = req.body;
+    const tournament = tournamentManager.setPrizes(tournamentId, prizes);
+    const standings = tournamentManager.getStandings(tournament);
+    io.emit('tournament:updated', { tournament, standings });
+    res.json({ success: true, tournament, standings });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/tournament/admin/start-finals', (req, res) => {
+  const adminId = req.headers['x-admin-id'];
+  const admin = db.getUserById(adminId);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès réservé aux administrateurs.' });
+  }
+  try {
+    const { tournamentId } = req.body;
+    const tournament = tournamentManager.startFinals(tournamentId);
+    const standings = tournamentManager.getStandings(tournament);
+    io.emit('tournament:updated', { tournament, standings });
+    res.json({ success: true, tournament, standings });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/tournament/admin/notify-winners', async (req, res) => {
+  const adminId = req.headers['x-admin-id'];
+  const admin = db.getUserById(adminId);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès réservé aux administrateurs.' });
+  }
+  try {
+    const { tournamentId, adminNote } = req.body;
+    const tournament = tournamentManager.tournaments.get(tournamentId);
+    if (!tournament || !tournament.winners) {
+      return res.status(400).json({ error: 'Le tournoi n\'est pas encore terminé ou aucun vainqueur désigné.' });
+    }
+
+    const { first, second, third } = tournament.winners;
+    const winnersList = [
+      { rank: 1, user: first, prize: tournament.prizes.first },
+      { rank: 2, user: second, prize: tournament.prizes.second },
+      { rank: 3, user: third, prize: tournament.prizes.third }
+    ];
+
+    for (const w of winnersList) {
+      if (w.user?.id) {
+        const fullUser = db.getUserById(w.user.id);
+        if (fullUser && fullUser.email) {
+          await mailer.sendTournamentPrizeEmail({
+            email: fullUser.email,
+            username: fullUser.username,
+            rank: w.rank,
+            prizeTitle: w.prize,
+            tournamentName: tournament.name,
+            adminNote: adminNote || ''
+          });
+        }
+      }
+    }
+
+    tournament.winners.notifiedAt = new Date().toISOString();
+    tournamentManager.saveTournaments();
+    io.emit('tournament:updated', { tournament, standings: tournamentManager.getStandings(tournament) });
+    res.json({ success: true, message: 'Les 3 vainqueurs ont été notifiés personnellement par email !' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/tournament/admin/reset', (req, res) => {
+  const adminId = req.headers['x-admin-id'];
+  const admin = db.getUserById(adminId);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès réservé aux administrateurs.' });
+  }
+  try {
+    const { name, minPlayers, maxPlayers, prizes } = req.body;
+    const tournament = tournamentManager.resetTournament({ name, minPlayers, maxPlayers, prizes });
+    const standings = tournamentManager.getStandings(tournament);
+    io.emit('tournament:updated', { tournament, standings });
+    res.json({ success: true, tournament, standings });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/tournament/record-pool-match', (req, res) => {
+  try {
+    const { tournamentId, matchId, winnerId, score1, score2 } = req.body;
+    const result = tournamentManager.recordPoolMatch(tournamentId, matchId, { winnerId, score1, score2 });
+    io.emit('tournament:updated', { tournament: result.tournament, standings: result.standings });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/tournament/record-final-match', (req, res) => {
+  try {
+    const { tournamentId, finalMatchId, winnerId, score1, score2 } = req.body;
+    const tournament = tournamentManager.recordFinalMatch(tournamentId, finalMatchId, { winnerId, score1, score2 });
+    const standings = tournamentManager.getStandings(tournament);
+    io.emit('tournament:updated', { tournament, standings });
+    res.json({ success: true, tournament, standings });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // User Statistics endpoints
 app.post('/api/user/record-match', (req, res) => {
   try {
@@ -600,6 +774,124 @@ io.on('connection', (socket) => {
     broadcastLobby();
   });
 
+  // Tournoi : Défier un joueur pour un match officiel de tournoi
+  socket.on('tournament:send_challenge', ({ tournamentId, matchId, toUserId, isFinalMatch = false }) => {
+    const toUser = Array.from(sockets.values()).find(u => u.id === toUserId);
+    if (!toUser) {
+      return socket.emit('tournament:challenge_error', { message: 'Ce joueur n\'est actuellement pas connecté.' });
+    }
+    if (toUser.status === 'in_game') {
+      return socket.emit('tournament:challenge_error', { message: 'Ce joueur est actuellement déjà en plein match.' });
+    }
+
+    const challengeId = `tourn_chal_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+    challenges.set(challengeId, {
+      id: challengeId,
+      from: { id: user.id, username: user.username },
+      to: { id: toUser.id, username: toUser.username },
+      tournamentId,
+      matchId,
+      isFinalMatch: !!isFinalMatch,
+      gameType: '501',
+      bestOf: 5,
+      isTournament: true
+    });
+
+    io.to(toUser.socketId).emit('tournament:challenge_received', {
+      challengeId,
+      tournamentId,
+      matchId,
+      isFinalMatch: !!isFinalMatch,
+      fromUsername: user.username,
+      fromUserId: user.id
+    });
+  });
+
+  socket.on('tournament:respond_challenge', ({ challengeId, accepted }) => {
+    const challenge = challenges.get(challengeId);
+    if (!challenge) return;
+    challenges.delete(challengeId);
+
+    const fromUser = Array.from(sockets.values()).find(u => u.id === challenge.from.id);
+    const toUser = user;
+
+    if (!accepted) {
+      if (fromUser) {
+        io.to(fromUser.socketId).emit('tournament:challenge_declined', {
+          username: toUser.username
+        });
+      }
+      return;
+    }
+
+    if (!fromUser || fromUser.status !== 'idle' || toUser.status !== 'idle') {
+      socket.emit('tournament:challenge_error', { message: 'L\'un des deux joueurs n\'est plus disponible.' });
+      if (fromUser) io.to(fromUser.socketId).emit('tournament:challenge_error', { message: 'Match annulé.' });
+      return;
+    }
+
+    const roomId = `room_tournoi_${Date.now()}`;
+    fromUser.status = 'in_game';
+    toUser.status = 'in_game';
+
+    const startScore = 501;
+    const bestOf = 5; // Best of 5 legs (premier à 3 legs)
+    const legsToWin = 3;
+
+    const gameState = {
+      roomId,
+      gameType: '501',
+      bestOf: 5,
+      legsToWin: 3,
+      startScore: 501,
+      isTournamentMatch: true,
+      tournamentId: challenge.tournamentId,
+      tournamentMatchId: challenge.matchId,
+      isFinalMatch: !!challenge.isFinalMatch,
+      phase: 'bull_off',
+      bullOffThrows: {},
+      currentLegNumber: 1,
+      firstLegStarterId: null,
+      secondLegStarterId: null,
+      turnPlayerId: null,
+      players: [
+        {
+          id: fromUser.id,
+          username: fromUser.username,
+          currentScore: startScore,
+          currentTurnDarts: [],
+          legsWon: 0,
+          totalThrows: 0
+        },
+        {
+          id: toUser.id,
+          username: toUser.username,
+          currentScore: startScore,
+          currentTurnDarts: [],
+          legsWon: 0,
+          totalThrows: 0
+        }
+      ]
+    };
+
+    games.set(roomId, gameState);
+
+    const fromSocket = io.sockets.sockets.get(fromUser.socketId);
+    if (fromSocket) fromSocket.join(roomId);
+    socket.join(roomId);
+
+    io.to(roomId).emit('game:start', {
+      roomId,
+      gameState,
+      initiatorId: fromUser.id,
+      isTournament: true,
+      tournamentId: challenge.tournamentId,
+      tournamentMatchId: challenge.matchId
+    });
+
+    broadcastLobby();
+  });
+
   // Bull-Off Throw event (closest to center starts leg 1)
   socket.on('game:bull_off_throw', ({ roomId, distance, dart }) => {
     const game = games.get(roomId);
@@ -747,6 +1039,40 @@ io.on('connection', (socket) => {
         } catch (e) {
           console.warn('Error recording online match stats:', e);
         }
+
+        // Si le match fait partie d'un tournoi officiel, enregistrer le résultat immédiatement
+        if (game.isTournamentMatch && game.tournamentId && game.tournamentMatchId) {
+          try {
+            const loserPlayer = game.players.find(p => p.id !== currentPlayer.id);
+            const winnerLegs = currentPlayer.legsWon;
+            const loserLegs = loserPlayer ? loserPlayer.legsWon : 0;
+            const score1 = game.players[0].id === currentPlayer.id ? winnerLegs : loserLegs;
+            const score2 = game.players[1].id === currentPlayer.id ? winnerLegs : loserLegs;
+
+            if (game.isFinalMatch) {
+              tournamentManager.recordFinalMatch(game.tournamentId, game.tournamentMatchId, {
+                winnerId: currentPlayer.id,
+                score1,
+                score2
+              });
+            } else {
+              tournamentManager.recordPoolMatch(game.tournamentId, game.tournamentMatchId, {
+                winnerId: currentPlayer.id,
+                score1,
+                score2
+              });
+            }
+
+            const t = tournamentManager.getActiveTournament();
+            io.emit('tournament:updated', {
+              tournament: t,
+              standings: tournamentManager.getStandings(t)
+            });
+            console.log(`🏆 [Tournoi] Résultat match enregistré : ${game.players[0].username} ${score1} - ${score2} ${game.players[1].username}`);
+          } catch (tErr) {
+            console.error('Erreur enregistrement résultat match tournoi:', tErr);
+          }
+        }
       } else {
         io.to(roomId).emit('game:leg_won', {
           winnerId: currentPlayer.id,
@@ -871,6 +1197,38 @@ io.on('connection', (socket) => {
         });
       } catch (e) {
         console.warn('Error recording forfeit stats:', e);
+      }
+
+      // Tournoi officiel : enregistrement du forfait
+      if (game.isTournamentMatch && game.tournamentId && game.tournamentMatchId) {
+        try {
+          const winnerLegs = game.legsToWin;
+          const loserLegs = forfeiter.legsWon || 0;
+          const score1 = game.players[0].id === winner.id ? winnerLegs : loserLegs;
+          const score2 = game.players[1].id === winner.id ? winnerLegs : loserLegs;
+
+          if (game.isFinalMatch) {
+            tournamentManager.recordFinalMatch(game.tournamentId, game.tournamentMatchId, {
+              winnerId: winner.id,
+              score1,
+              score2
+            });
+          } else {
+            tournamentManager.recordPoolMatch(game.tournamentId, game.tournamentMatchId, {
+              winnerId: winner.id,
+              score1,
+              score2
+            });
+          }
+
+          const t = tournamentManager.getActiveTournament();
+          io.emit('tournament:updated', {
+            tournament: t,
+            standings: tournamentManager.getStandings(t)
+          });
+        } catch (tErr) {
+          console.error('Erreur enregistrement forfait tournoi:', tErr);
+        }
       }
 
       io.to(roomId).emit('game:forfeited', {

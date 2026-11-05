@@ -186,8 +186,90 @@ async function sendPasswordResetEmail({ email, username, resetLink }) {
   return { success: true, simulated: true, resetLink };
 }
 
+/**
+ * Envoie un email officiel de félicitations et d'attribution du prix du tournoi
+ */
+async function sendTournamentPrizeEmail({ email, username, rank, prizeTitle, tournamentName, adminNote }) {
+  const mailTransporter = getTransporter();
+
+  const fromAddress = process.env.SMTP_FROM || '"DartsMa Live Tournois" <noreply@dartsma.com>';
+  const medals = { 1: '🥇 1ère Place', 2: '🥈 2ème Place', 3: '🥉 3ème Place' };
+  const badgeColors = { 1: '#eab308', 2: '#94a3b8', 3: '#d97706' };
+  const subject = `🏆 Félicitations ${username} ! Vous remportez la ${medals[rank] || rank + 'e place'} du ${tournamentName}`;
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Résultats Tournoi DartsMa Live</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #020617; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="padding: 40px 16px; text-align: center;">
+    <div style="max-width: 520px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 24px; padding: 36px 28px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+      
+      <!-- Trophée -->
+      <div style="width: 64px; height: 64px; background-color: ${badgeColors[rank] || '#10b981'}; border-radius: 20px; margin: 0 auto 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; line-height: 64px;">
+        🏆
+      </div>
+
+      <h1 style="color: #ffffff; font-size: 22px; font-weight: 900; letter-spacing: 2px; margin: 0 0 4px;">DARTSMA PRO</h1>
+      <p style="color: #10b981; font-size: 14px; font-weight: 800; margin: 0 0 24px; text-transform: uppercase;">Podium Officiel du Tournoi</p>
+
+      <div style="text-align: left; background-color: #1e293b; border-radius: 14px; padding: 20px; margin-bottom: 24px; color: #cbd5e1; font-size: 14px; line-height: 1.6;">
+        Bravo <strong>${username}</strong> !<br><br>
+        Toute l'équipe de <strong>DartsMa Live</strong> et l'administrateur vous adressent leurs plus vives félicitations pour votre parcours dans le <strong>${tournamentName}</strong>.<br><br>
+        Vous montez sur le podium à la position :<br>
+        <div style="text-align: center; margin: 16px 0; font-size: 18px; font-weight: 900; color: #ffffff; background: #0f172a; padding: 12px; border-radius: 12px; border: 1px solid ${badgeColors[rank] || '#334155'};">
+          ${medals[rank] || rank + 'ème'}
+        </div>
+        <strong>Votre récompense :</strong><br>
+        <div style="margin-top: 8px; font-size: 15px; font-weight: 800; color: #38bdf8;">
+          🎁 ${prizeTitle}
+        </div>
+        ${adminNote ? `<br><div style="border-top: 1px dashed #334155; padding-top: 10px; margin-top: 10px; font-style: italic; color: #94a3b8;"><strong>Message de l'administrateur :</strong><br>"${adminNote}"</div>` : ''}
+      </div>
+
+      <p style="color: #94a3b8; font-size: 12px; line-height: 1.5; margin: 0 0 20px;">
+        L'administrateur prendra contact directement avec vous pour les modalités de remise de votre prix.
+      </p>
+
+      <div style="border-top: 1px solid #1e293b; padding-top: 18px; color: #64748b; font-size: 11px;">
+        DartsMa Live • Plateforme de fléchettes connectée en direct
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  if (mailTransporter && email) {
+    try {
+      const info = await mailTransporter.sendMail({
+        from: fromAddress,
+        to: email,
+        subject,
+        html: htmlContent
+      });
+      console.log(`✅ [Mailer] Notification de prix de tournoi envoyée à ${email} (MessageId: ${info.messageId})`);
+      return { success: true, simulated: false, messageId: info.messageId };
+    } catch (err) {
+      console.error(`❌ [Mailer] Erreur envoi email prix tournoi à ${email} :`, err.message);
+    }
+  }
+
+  console.log(`\n========================================================================`);
+  console.log(`🏆 [SIMULATION PRIX TOURNOI] Pour : ${email} (${username}) - Rang #${rank}`);
+  console.log(`🎁 PRIX : ${prizeTitle}`);
+  console.log(`========================================================================\n`);
+
+  return { success: true, simulated: true };
+}
+
 module.exports = {
   sendVerificationEmail,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  sendTournamentPrizeEmail
 };
 

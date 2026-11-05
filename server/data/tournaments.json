@@ -1,0 +1,829 @@
+[
+  {
+    "id": "tournoi_1793895709744",
+    "name": "Grand Tournoi DartsMa Live - Saison 1",
+    "minPlayers": 6,
+    "maxPlayers": 16,
+    "status": "cancelled",
+    "createdAt": "2026-11-05T16:21:49.744Z",
+    "startedAt": null,
+    "deadlineAt": null,
+    "completedAt": null,
+    "bestOf": 5,
+    "prizes": {
+      "first": "Trophée DartsMa Or 🏆 + 100€ de dotation",
+      "second": "Trophée DartsMa Argent 🥈 + Cible Pro Blade 6",
+      "third": "Trophée DartsMa Bronze 🥉 + Lot de Fléchettes Tungstène"
+    },
+    "participants": [],
+    "poolMatches": [],
+    "finals": {
+      "semiFinal1": null,
+      "semiFinal2": null,
+      "grandFinal": null,
+      "smallFinal": null
+    },
+    "winners": null
+  },
+  {
+    "id": "tournoi_1793895731044",
+    "name": "Tournoi Test DartsMa",
+    "minPlayers": 6,
+    "maxPlayers": 6,
+    "status": "cancelled",
+    "createdAt": "2026-11-05T16:22:11.044Z",
+    "startedAt": null,
+    "deadlineAt": null,
+    "completedAt": null,
+    "bestOf": 5,
+    "prizes": {
+      "first": "Trophée Or 🏆 + 100€",
+      "second": "Trophée Argent 🥈 + Cible",
+      "third": "Trophée Bronze 🥉 + Fléchettes"
+    },
+    "participants": [
+      {
+        "id": "usr_1793895763688_xfw9w",
+        "username": "TestReg2",
+        "email": "testreg2@example.com",
+        "registeredAt": "2026-11-05T16:22:43.756Z"
+      }
+    ],
+    "poolMatches": [],
+    "finals": {
+      "semiFinal1": null,
+      "semiFinal2": null,
+      "grandFinal": null,
+      "smallFinal": null
+    },
+    "winners": null
+  },
+  {
+    "id": "tournoi_1793895782497",
+    "name": "Tournoi Officiel DartsMa - Test E2E",
+    "minPlayers": 6,
+    "maxPlayers": 6,
+    "status": "cancelled",
+    "createdAt": "2026-11-05T16:23:02.497Z",
+    "startedAt": "2026-11-05T16:23:02.890Z",
+    "deadlineAt": "2026-11-12T16:23:02.890Z",
+    "completedAt": null,
+    "bestOf": 5,
+    "prizes": {
+      "first": "Trophée Or 🏆 + 100€",
+      "second": "Trophée Argent 🥈 + Cible",
+      "third": "Trophée Bronze 🥉 + Fléchettes"
+    },
+    "participants": [
+      {
+        "id": "usr_1793895782500_iq2rn",
+        "username": "Joueur_1",
+        "email": "p1_1793895782499@darts.com",
+        "registeredAt": "2026-11-05T16:23:02.563Z"
+      },
+      {
+        "id": "usr_1793895782566_ffjnw",
+        "username": "Joueur_2",
+        "email": "p2_1793895782565@darts.com",
+        "registeredAt": "2026-11-05T16:23:02.630Z"
+      },
+      {
+        "id": "usr_1793895782632_r79mh",
+        "username": "Joueur_3",
+        "email": "p3_1793895782631@darts.com",
+        "registeredAt": "2026-11-05T16:23:02.695Z"
+      },
+      {
+        "id": "usr_1793895782697_63bk7",
+        "username": "Joueur_4",
+        "email": "p4_1793895782696@darts.com",
+        "registeredAt": "2026-11-05T16:23:02.759Z"
+      },
+      {
+        "id": "usr_1793895782762_2k5kp",
+        "username": "Joueur_5",
+        "email": "p5_1793895782761@darts.com",
+        "registeredAt": "2026-11-05T16:23:02.823Z"
+      },
+      {
+        "id": "usr_1793895782825_n5zfe",
+        "username": "Joueur_6",
+        "email": "p6_1793895782824@darts.com",
+        "registeredAt": "2026-11-05T16:23:02.887Z"
+      }
+    ],
+    "poolMatches": [
+      {
+        "id": "match_tournoi_1793895782497_1",
+        "player1": {
+          "id": "usr_1793895782500_iq2rn",
+          "username": "Joueur_1"
+        },
+        "player2": {
+          "id": "usr_1793895782566_ffjnw",
+          "username": "Joueur_2"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_2",
+        "player1": {
+          "id": "usr_1793895782500_iq2rn",
+          "username": "Joueur_1"
+        },
+        "player2": {
+          "id": "usr_1793895782632_r79mh",
+          "username": "Joueur_3"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_3",
+        "player1": {
+          "id": "usr_1793895782500_iq2rn",
+          "username": "Joueur_1"
+        },
+        "player2": {
+          "id": "usr_1793895782697_63bk7",
+          "username": "Joueur_4"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_4",
+        "player1": {
+          "id": "usr_1793895782500_iq2rn",
+          "username": "Joueur_1"
+        },
+        "player2": {
+          "id": "usr_1793895782762_2k5kp",
+          "username": "Joueur_5"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_5",
+        "player1": {
+          "id": "usr_1793895782500_iq2rn",
+          "username": "Joueur_1"
+        },
+        "player2": {
+          "id": "usr_1793895782825_n5zfe",
+          "username": "Joueur_6"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_6",
+        "player1": {
+          "id": "usr_1793895782566_ffjnw",
+          "username": "Joueur_2"
+        },
+        "player2": {
+          "id": "usr_1793895782632_r79mh",
+          "username": "Joueur_3"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_7",
+        "player1": {
+          "id": "usr_1793895782566_ffjnw",
+          "username": "Joueur_2"
+        },
+        "player2": {
+          "id": "usr_1793895782697_63bk7",
+          "username": "Joueur_4"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_8",
+        "player1": {
+          "id": "usr_1793895782566_ffjnw",
+          "username": "Joueur_2"
+        },
+        "player2": {
+          "id": "usr_1793895782762_2k5kp",
+          "username": "Joueur_5"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_9",
+        "player1": {
+          "id": "usr_1793895782566_ffjnw",
+          "username": "Joueur_2"
+        },
+        "player2": {
+          "id": "usr_1793895782825_n5zfe",
+          "username": "Joueur_6"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_10",
+        "player1": {
+          "id": "usr_1793895782632_r79mh",
+          "username": "Joueur_3"
+        },
+        "player2": {
+          "id": "usr_1793895782697_63bk7",
+          "username": "Joueur_4"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_11",
+        "player1": {
+          "id": "usr_1793895782632_r79mh",
+          "username": "Joueur_3"
+        },
+        "player2": {
+          "id": "usr_1793895782762_2k5kp",
+          "username": "Joueur_5"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_12",
+        "player1": {
+          "id": "usr_1793895782632_r79mh",
+          "username": "Joueur_3"
+        },
+        "player2": {
+          "id": "usr_1793895782825_n5zfe",
+          "username": "Joueur_6"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_13",
+        "player1": {
+          "id": "usr_1793895782697_63bk7",
+          "username": "Joueur_4"
+        },
+        "player2": {
+          "id": "usr_1793895782762_2k5kp",
+          "username": "Joueur_5"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_14",
+        "player1": {
+          "id": "usr_1793895782697_63bk7",
+          "username": "Joueur_4"
+        },
+        "player2": {
+          "id": "usr_1793895782825_n5zfe",
+          "username": "Joueur_6"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      {
+        "id": "match_tournoi_1793895782497_15",
+        "player1": {
+          "id": "usr_1793895782762_2k5kp",
+          "username": "Joueur_5"
+        },
+        "player2": {
+          "id": "usr_1793895782825_n5zfe",
+          "username": "Joueur_6"
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      }
+    ],
+    "finals": {
+      "semiFinal1": {
+        "id": "sf1_tournoi_1793895782497",
+        "title": "Demi-Finale 1 (1er vs 4ème)",
+        "player1": {
+          "id": "usr_1793895782500_iq2rn",
+          "username": "Joueur_1",
+          "rank": 1
+        },
+        "player2": {
+          "id": "usr_1793895782697_63bk7",
+          "username": "Joueur_4",
+          "rank": 4
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      "semiFinal2": {
+        "id": "sf2_tournoi_1793895782497",
+        "title": "Demi-Finale 2 (2ème vs 3ème)",
+        "player1": {
+          "id": "usr_1793895782566_ffjnw",
+          "username": "Joueur_2",
+          "rank": 2
+        },
+        "player2": {
+          "id": "usr_1793895782632_r79mh",
+          "username": "Joueur_3",
+          "rank": 3
+        },
+        "played": false,
+        "score1": 0,
+        "score2": 0,
+        "winnerId": null,
+        "playedAt": null
+      },
+      "grandFinal": null,
+      "smallFinal": null
+    },
+    "winners": null
+  },
+  {
+    "id": "tournoi_1793895864848",
+    "name": "Tournoi Officiel DartsMa - Test E2E",
+    "minPlayers": 6,
+    "maxPlayers": 6,
+    "status": "completed",
+    "createdAt": "2026-11-05T16:24:24.848Z",
+    "startedAt": "2026-11-05T16:24:25.275Z",
+    "deadlineAt": "2026-11-12T16:24:25.275Z",
+    "completedAt": "2026-11-05T16:24:25.318Z",
+    "bestOf": 5,
+    "prizes": {
+      "first": "Trophée Or 🏆 + 100€",
+      "second": "Trophée Argent 🥈 + Cible",
+      "third": "Trophée Bronze 🥉 + Fléchettes"
+    },
+    "participants": [
+      {
+        "id": "usr_1793895864852_5pofp",
+        "username": "Joueur_1_222",
+        "email": "p1_1793895864851@darts.com",
+        "registeredAt": "2026-11-05T16:24:24.920Z"
+      },
+      {
+        "id": "usr_1793895864923_u5cqd",
+        "username": "Joueur_2_493",
+        "email": "p2_1793895864922@darts.com",
+        "registeredAt": "2026-11-05T16:24:24.993Z"
+      },
+      {
+        "id": "usr_1793895864996_3e69r",
+        "username": "Joueur_3_661",
+        "email": "p3_1793895864996@darts.com",
+        "registeredAt": "2026-11-05T16:24:25.063Z"
+      },
+      {
+        "id": "usr_1793895865065_fufs9",
+        "username": "Joueur_4_332",
+        "email": "p4_1793895865064@darts.com",
+        "registeredAt": "2026-11-05T16:24:25.131Z"
+      },
+      {
+        "id": "usr_1793895865134_wjfy2",
+        "username": "Joueur_5_161",
+        "email": "p5_1793895865133@darts.com",
+        "registeredAt": "2026-11-05T16:24:25.202Z"
+      },
+      {
+        "id": "usr_1793895865205_x4f8z",
+        "username": "Joueur_6_861",
+        "email": "p6_1793895865204@darts.com",
+        "registeredAt": "2026-11-05T16:24:25.272Z"
+      }
+    ],
+    "poolMatches": [
+      {
+        "id": "match_tournoi_1793895864848_1",
+        "player1": {
+          "id": "usr_1793895864852_5pofp",
+          "username": "Joueur_1_222"
+        },
+        "player2": {
+          "id": "usr_1793895864923_u5cqd",
+          "username": "Joueur_2_493"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 2,
+        "winnerId": "usr_1793895864852_5pofp",
+        "playedAt": "2026-11-05T16:24:25.279Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_2",
+        "player1": {
+          "id": "usr_1793895864852_5pofp",
+          "username": "Joueur_1_222"
+        },
+        "player2": {
+          "id": "usr_1793895864996_3e69r",
+          "username": "Joueur_3_661"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895864852_5pofp",
+        "playedAt": "2026-11-05T16:24:25.282Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_3",
+        "player1": {
+          "id": "usr_1793895864852_5pofp",
+          "username": "Joueur_1_222"
+        },
+        "player2": {
+          "id": "usr_1793895865065_fufs9",
+          "username": "Joueur_4_332"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895864852_5pofp",
+        "playedAt": "2026-11-05T16:24:25.284Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_4",
+        "player1": {
+          "id": "usr_1793895864852_5pofp",
+          "username": "Joueur_1_222"
+        },
+        "player2": {
+          "id": "usr_1793895865134_wjfy2",
+          "username": "Joueur_5_161"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895864852_5pofp",
+        "playedAt": "2026-11-05T16:24:25.286Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_5",
+        "player1": {
+          "id": "usr_1793895864852_5pofp",
+          "username": "Joueur_1_222"
+        },
+        "player2": {
+          "id": "usr_1793895865205_x4f8z",
+          "username": "Joueur_6_861"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895864852_5pofp",
+        "playedAt": "2026-11-05T16:24:25.288Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_6",
+        "player1": {
+          "id": "usr_1793895864923_u5cqd",
+          "username": "Joueur_2_493"
+        },
+        "player2": {
+          "id": "usr_1793895864996_3e69r",
+          "username": "Joueur_3_661"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895864923_u5cqd",
+        "playedAt": "2026-11-05T16:24:25.290Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_7",
+        "player1": {
+          "id": "usr_1793895864923_u5cqd",
+          "username": "Joueur_2_493"
+        },
+        "player2": {
+          "id": "usr_1793895865065_fufs9",
+          "username": "Joueur_4_332"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895864923_u5cqd",
+        "playedAt": "2026-11-05T16:24:25.292Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_8",
+        "player1": {
+          "id": "usr_1793895864923_u5cqd",
+          "username": "Joueur_2_493"
+        },
+        "player2": {
+          "id": "usr_1793895865134_wjfy2",
+          "username": "Joueur_5_161"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895864923_u5cqd",
+        "playedAt": "2026-11-05T16:24:25.295Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_9",
+        "player1": {
+          "id": "usr_1793895864923_u5cqd",
+          "username": "Joueur_2_493"
+        },
+        "player2": {
+          "id": "usr_1793895865205_x4f8z",
+          "username": "Joueur_6_861"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895864923_u5cqd",
+        "playedAt": "2026-11-05T16:24:25.297Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_10",
+        "player1": {
+          "id": "usr_1793895864996_3e69r",
+          "username": "Joueur_3_661"
+        },
+        "player2": {
+          "id": "usr_1793895865065_fufs9",
+          "username": "Joueur_4_332"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895864996_3e69r",
+        "playedAt": "2026-11-05T16:24:25.298Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_11",
+        "player1": {
+          "id": "usr_1793895864996_3e69r",
+          "username": "Joueur_3_661"
+        },
+        "player2": {
+          "id": "usr_1793895865134_wjfy2",
+          "username": "Joueur_5_161"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895864996_3e69r",
+        "playedAt": "2026-11-05T16:24:25.300Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_12",
+        "player1": {
+          "id": "usr_1793895864996_3e69r",
+          "username": "Joueur_3_661"
+        },
+        "player2": {
+          "id": "usr_1793895865205_x4f8z",
+          "username": "Joueur_6_861"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895864996_3e69r",
+        "playedAt": "2026-11-05T16:24:25.302Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_13",
+        "player1": {
+          "id": "usr_1793895865065_fufs9",
+          "username": "Joueur_4_332"
+        },
+        "player2": {
+          "id": "usr_1793895865134_wjfy2",
+          "username": "Joueur_5_161"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895865065_fufs9",
+        "playedAt": "2026-11-05T16:24:25.303Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_14",
+        "player1": {
+          "id": "usr_1793895865065_fufs9",
+          "username": "Joueur_4_332"
+        },
+        "player2": {
+          "id": "usr_1793895865205_x4f8z",
+          "username": "Joueur_6_861"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895865065_fufs9",
+        "playedAt": "2026-11-05T16:24:25.305Z"
+      },
+      {
+        "id": "match_tournoi_1793895864848_15",
+        "player1": {
+          "id": "usr_1793895865134_wjfy2",
+          "username": "Joueur_5_161"
+        },
+        "player2": {
+          "id": "usr_1793895865205_x4f8z",
+          "username": "Joueur_6_861"
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895865134_wjfy2",
+        "playedAt": "2026-11-05T16:24:25.307Z"
+      }
+    ],
+    "finals": {
+      "semiFinal1": {
+        "id": "sf1_tournoi_1793895864848",
+        "title": "Demi-Finale 1 (1er vs 4ème)",
+        "player1": {
+          "id": "usr_1793895864852_5pofp",
+          "username": "Joueur_1_222",
+          "rank": 1
+        },
+        "player2": {
+          "id": "usr_1793895865065_fufs9",
+          "username": "Joueur_4_332",
+          "rank": 4
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 0,
+        "winnerId": "usr_1793895864852_5pofp",
+        "playedAt": "2026-11-05T16:24:25.312Z"
+      },
+      "semiFinal2": {
+        "id": "sf2_tournoi_1793895864848",
+        "title": "Demi-Finale 2 (2ème vs 3ème)",
+        "player1": {
+          "id": "usr_1793895864923_u5cqd",
+          "username": "Joueur_2_493",
+          "rank": 2
+        },
+        "player2": {
+          "id": "usr_1793895864996_3e69r",
+          "username": "Joueur_3_661",
+          "rank": 3
+        },
+        "played": true,
+        "score1": 1,
+        "score2": 3,
+        "winnerId": "usr_1793895864996_3e69r",
+        "playedAt": "2026-11-05T16:24:25.314Z"
+      },
+      "grandFinal": {
+        "id": "gf_tournoi_1793895864848",
+        "title": "Grande Finale 🏆 (1ère et 2ème place)",
+        "player1": {
+          "id": "usr_1793895864852_5pofp",
+          "username": "Joueur_1_222",
+          "rank": 1
+        },
+        "player2": {
+          "id": "usr_1793895864996_3e69r",
+          "username": "Joueur_3_661",
+          "rank": 3
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 2,
+        "winnerId": "usr_1793895864852_5pofp",
+        "playedAt": "2026-11-05T16:24:25.316Z"
+      },
+      "smallFinal": {
+        "id": "pf_tournoi_1793895864848",
+        "title": "Petite Finale 🥉 (3ème et 4ème place)",
+        "player1": {
+          "id": "usr_1793895865065_fufs9",
+          "username": "Joueur_4_332",
+          "rank": 4
+        },
+        "player2": {
+          "id": "usr_1793895864923_u5cqd",
+          "username": "Joueur_2_493",
+          "rank": 2
+        },
+        "played": true,
+        "score1": 3,
+        "score2": 1,
+        "winnerId": "usr_1793895865065_fufs9",
+        "playedAt": "2026-11-05T16:24:25.318Z"
+      }
+    },
+    "winners": {
+      "first": {
+        "id": "usr_1793895864852_5pofp",
+        "username": "Joueur_1_222",
+        "rank": 1,
+        "prize": "Trophée Or 🏆 + 100€"
+      },
+      "second": {
+        "id": "usr_1793895864996_3e69r",
+        "username": "Joueur_3_661",
+        "rank": 3,
+        "prize": "Trophée Argent 🥈 + Cible"
+      },
+      "third": {
+        "id": "usr_1793895865065_fufs9",
+        "username": "Joueur_4_332",
+        "rank": 4,
+        "prize": "Trophée Bronze 🥉 + Fléchettes"
+      },
+      "fourth": {
+        "id": "usr_1793895864923_u5cqd",
+        "username": "Joueur_2_493",
+        "rank": 2,
+        "prize": "Médaille d'honneur"
+      },
+      "notifiedAt": "2026-11-05T16:24:25.322Z"
+    }
+  },
+  {
+    "id": "tournoi_1793895865332",
+    "name": "Grand Tournoi DartsMa Live - Saison 1",
+    "minPlayers": 6,
+    "maxPlayers": 16,
+    "status": "registration",
+    "createdAt": "2026-11-05T16:24:25.332Z",
+    "startedAt": null,
+    "deadlineAt": null,
+    "completedAt": null,
+    "bestOf": 5,
+    "prizes": {
+      "first": "Trophée DartsMa Or 🏆 + 100€ de dotation",
+      "second": "Trophée DartsMa Argent 🥈 + Cible Pro Blade 6",
+      "third": "Trophée DartsMa Bronze 🥉 + Lot de Fléchettes Tungstène"
+    },
+    "participants": [],
+    "poolMatches": [],
+    "finals": {
+      "semiFinal1": null,
+      "semiFinal2": null,
+      "grandFinal": null,
+      "smallFinal": null
+    },
+    "winners": null
+  }
+]

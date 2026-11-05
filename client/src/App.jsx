@@ -5,6 +5,7 @@ import MatchView from './components/MatchView';
 import AuthScreen from './components/AuthScreen';
 import AdminPanel from './components/AdminPanel';
 import StatsView from './components/StatsView';
+import TournamentView from './components/TournamentView';
 import CompanionCameraView from './components/CompanionCameraView';
 import { initAutoWakeLock } from './utils/wakeLock';
 
@@ -65,6 +66,7 @@ export default function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const [isTournamentOpen, setIsTournamentOpen] = useState(false);
 
   // Prevent smartphone / tablet from sleeping
   useEffect(() => {
@@ -155,6 +157,7 @@ export default function App() {
         isSoloMatch: false
       });
       setIncomingChallenge(null);
+      setIsTournamentOpen(false);
     });
 
     newSocket.on('disconnect', () => {
@@ -384,6 +387,7 @@ export default function App() {
           onStartSoloMatch={handleStartSoloMatch}
           onOpenAdmin={() => setIsAdminOpen(true)}
           onOpenStats={() => setIsStatsOpen(true)}
+          onOpenTournament={() => setIsTournamentOpen(true)}
           onLogout={handleLogout}
           backendUrl={BACKEND_URL}
           onUserUpdated={(u) => {
@@ -392,6 +396,16 @@ export default function App() {
           }}
         />
       )}
+
+      {/* Tournament Modal View */}
+      <TournamentView
+        isOpen={isTournamentOpen}
+        onClose={() => setIsTournamentOpen(false)}
+        currentUser={currentUser}
+        socket={socket}
+        backendUrl={BACKEND_URL}
+        users={users}
+      />
 
       {/* Admin Panel Modal */}
       <AdminPanel
