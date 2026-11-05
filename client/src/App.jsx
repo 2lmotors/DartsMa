@@ -385,6 +385,11 @@ export default function App() {
           onOpenAdmin={() => setIsAdminOpen(true)}
           onOpenStats={() => setIsStatsOpen(true)}
           onLogout={handleLogout}
+          backendUrl={BACKEND_URL}
+          onUserUpdated={(u) => {
+            setCurrentUser(u);
+            localStorage.setItem('dartsma_user', JSON.stringify(u));
+          }}
         />
       )}
 

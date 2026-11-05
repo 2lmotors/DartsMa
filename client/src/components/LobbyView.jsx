@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Users, Swords, Edit3, Target, Radio, Copy, Check, Shield, Bot, User, LogIn, LogOut, Play, BarChart3, Flame, Trophy, Volume2, VolumeX, Sliders } from 'lucide-react';
+import { Users, Swords, Edit3, Target, Radio, Copy, Check, Shield, Bot, User, LogIn, LogOut, Play, BarChart3, Flame, Trophy, Volume2, VolumeX, Sliders, Lock, Key } from 'lucide-react';
 import { BOT_LEVELS } from '../utils/botEngine';
 import { getVoiceMuted, toggleVoiceMute } from '../utils/soundEffects';
 import VoiceSettingsModal from './VoiceSettingsModal';
+import AccountModal from './AccountModal';
 
 export default function LobbyView({
   currentUser,
@@ -17,8 +18,11 @@ export default function LobbyView({
   onOpenAuth,
   onOpenAdmin,
   onOpenStats,
-  onLogout
+  onLogout,
+  backendUrl,
+  onUserUpdated
 }) {
+  const [showAccountModal, setShowAccountModal] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [selectedGameType, setSelectedGameType] = useState('501');
@@ -92,6 +96,17 @@ export default function LobbyView({
             <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
             <span>Stats</span>
           </button>
+
+          {currentUser?.email && (
+            <button
+              onClick={() => setShowAccountModal(true)}
+              className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-black flex items-center gap-1 transition shadow active:scale-95"
+              title="Mon compte et modification de mot de passe"
+            >
+              <Lock className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden xs:inline">Compte</span>
+            </button>
+          )}
 
           {currentUser?.role === 'admin' && (
             <button
@@ -517,6 +532,15 @@ export default function LobbyView({
           setShowVoiceModal(false);
           setIsVoiceMuted(getVoiceMuted());
         }}
+      />
+
+      {/* Mon Compte Personnel & Modification de Mot de passe */}
+      <AccountModal
+        isOpen={showAccountModal}
+        onClose={() => setShowAccountModal(false)}
+        currentUser={currentUser}
+        backendUrl={backendUrl}
+        onUserUpdated={onUserUpdated}
       />
     </div>
   );

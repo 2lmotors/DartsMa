@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Shield, ShieldCheck, Crown, Users, Ban, Trash2, CheckCircle, RefreshCw, X, Award, 
   Activity, Home, ArrowLeft, BarChart3, Target, Flame, Trophy, 
-  Calendar, CheckCircle2, XCircle, RotateCcw 
+  Calendar, CheckCircle2, XCircle, RotateCcw, UserPlus, Mail, Lock
 } from 'lucide-react';
 
 export default function AdminPanel({ isOpen, onClose, currentAdmin, backendUrl }) {
@@ -12,6 +12,16 @@ export default function AdminPanel({ isOpen, onClose, currentAdmin, backendUrl }
   const [error, setError] = useState('');
   const [justRefreshed, setJustRefreshed] = useState(false);
   const [inspectingUser, setInspectingUser] = useState(null);
+
+  // Modal d'ajout d'utilisateur par l'administrateur
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [newRole, setNewRole] = useState('user');
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState('');
+  const [addSuccess, setAddSuccess] = useState('');
 
   const getAdminId = () => {
     if (currentAdmin?.id) return currentAdmin.id;
@@ -138,6 +148,48 @@ export default function AdminPanel({ isOpen, onClose, currentAdmin, backendUrl }
     }
   };
 
+  const handleAddUser = async (e) => {
+    e.preventDefault();
+    setAddError('');
+    setAddSuccess('');
+    setAddLoading(true);
+
+    try {
+      const adminId = getAdminId();
+      const res = await fetch(getApiUrl('/api/admin/users/create'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-id': adminId
+        },
+        body: JSON.stringify({
+          email: newEmail.trim(),
+          password: newPassword,
+          username: newUsername.trim() || undefined,
+          role: newRole
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erreur lors de la création');
+
+      setAddSuccess(`Joueur ${data.user.username} (${data.user.email}) ajouté avec succès !`);
+      setNewEmail('');
+      setNewPassword('');
+      setNewUsername('');
+      setNewRole('user');
+      fetchUsers();
+      setTimeout(() => {
+        setShowAddUserModal(false);
+        setAddSuccess('');
+      }, 1400);
+    } catch (err) {
+      setAddError(err.message);
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -168,11 +220,19 @@ export default function AdminPanel({ isOpen, onClose, currentAdmin, backendUrl }
 
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <button
-              onClick={onClose}
+              onClick={() => { setShowAddUserModal(true); setAddError(''); setAddSuccess(''); }}
               className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center gap-1.5 transition shadow active:scale-95 shrink-0 cursor-pointer"
+              title="Ajouter manuellement un utilisateur avec email et mot de passe"
+            >
+              <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Ajouter un joueur</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs flex items-center gap-1.5 transition shadow active:scale-95 shrink-0 cursor-pointer"
               title="Retour à la page d'accueil"
             >
-              <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
               <span className="hidden sm:inline">Accueil</span>
             </button>
             <button
@@ -615,6 +675,144 @@ export default function AdminPanel({ isOpen, onClose, currentAdmin, backendUrl }
                 <span>Retour à la liste</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ajout Utilisateur par l'Admin */}
+      {showAddUserModal && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 z-50 animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <UserPlus className="w-4 h-4" />
+                </div>
+                <h3 className="font-black text-white text-base">Ajouter un Utilisateur</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddUserModal(false)}
+                className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {addSuccess && (
+              <div className="bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs p-3 rounded-xl mb-4 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{addSuccess}</span>
+              </div>
+            )}
+
+            {addError && (
+              <div className="bg-rose-950/80 border border-rose-500/60 text-rose-300 text-xs p-3 rounded-xl mb-4">
+                {addError}
+              </div>
+            )}
+
+            <form onSubmit={handleAddUser} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">
+                  Adresse Email <span className="text-emerald-400">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="joueur@exemple.com"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">
+                  Mot de passe <span className="text-emerald-400">*</span>
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="password"
+                    required
+                    placeholder="Au moins 4 caractères"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">
+                  Pseudo <span className="text-slate-500 font-normal">(facultatif, extrait de l'email si vide)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: RobinDesBois"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  maxLength={18}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Rôle initial</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewRole('user')}
+                    className={`py-2 rounded-xl text-xs font-bold border transition ${
+                      newRole === 'user'
+                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Joueur Standard
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewRole('admin')}
+                    className={`py-2 rounded-xl text-xs font-bold border transition ${
+                      newRole === 'admin'
+                        ? 'bg-amber-500/20 border-amber-500 text-amber-300'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Administrateur
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddUserModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={addLoading}
+                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition flex items-center gap-1.5 shadow active:scale-95 disabled:opacity-50"
+                >
+                  {addLoading ? (
+                    <span className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Créer l'utilisateur</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

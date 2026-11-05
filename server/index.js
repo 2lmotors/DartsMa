@@ -202,6 +202,62 @@ app.get('/api/auth/user/:id', (req, res) => {
   res.json({ success: true, user });
 });
 
+app.post('/api/auth/change-password', (req, res) => {
+  try {
+    const { userId, oldPassword, newPassword } = req.body;
+    if (!userId || !oldPassword || !newPassword) {
+      return res.status(400).json({ error: 'Tous les champs sont requis.' });
+    }
+    const updated = db.changePassword(userId, oldPassword, newPassword);
+    res.json({ success: true, user: updated, message: 'Mot de passe modifié avec succès !' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email, originUrl } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Adresse email requise.' });
+    }
+    const { user, resetToken } = db.createPasswordResetToken(email);
+
+    const proto = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.get('host');
+    const base = originUrl || process.env.PUBLIC_URL || `${proto}://${host}`;
+    const resetLink = `${base.replace(/\/$/, '')}/?resetToken=${resetToken}`;
+
+    const mailResult = await mailer.sendPasswordResetEmail({
+      email: user.email,
+      username: user.username,
+      resetLink
+    });
+
+    res.json({
+      success: true,
+      message: 'Un email contenant le lien de réinitialisation vous a été envoyé.',
+      resetLink: mailResult.simulated ? resetLink : undefined,
+      simulated: !!mailResult.simulated
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/auth/reset-password', (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Jeton et nouveau mot de passe requis.' });
+    }
+    const user = db.resetPasswordWithToken(token, newPassword);
+    res.json({ success: true, user, message: 'Votre mot de passe a été réinitialisé avec succès !' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.post('/api/auth/login', (req, res) => {
   try {
     const { identifier, password } = req.body;
@@ -264,6 +320,21 @@ app.get('/api/admin/users', (req, res) => {
   }
   const users = db.getAllUsers();
   res.json({ users, activeGamesCount: games.size, onlineSocketsCount: sockets.size });
+});
+
+app.post('/api/admin/users/create', (req, res) => {
+  const adminId = req.headers['x-admin-id'];
+  const admin = db.getUserById(adminId);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès refusé. Droits administrateur requis.' });
+  }
+  try {
+    const { email, password, username, role } = req.body;
+    const newUser = db.createUserByAdmin({ email, password, username, role });
+    res.json({ success: true, user: newUser });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 app.post('/api/admin/toggle-ban', (req, res) => {

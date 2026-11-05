@@ -367,6 +367,116 @@ class Database {
     return this.sanitizeUser(user);
   }
 
+  createUserByAdmin({ email, password, username, role = 'user' }) {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if (!cleanEmail) throw new Error('Adresse email requise.');
+    if (!password || password.trim().length < 4) throw new Error('Le mot de passe doit comporter au moins 4 caractères.');
+
+    let cleanUsername = (username || '').trim();
+    if (!cleanUsername) {
+      cleanUsername = cleanEmail.split('@')[0];
+    }
+
+    for (const u of this.users.values()) {
+      if (u.email.toLowerCase() === cleanEmail) {
+        throw new Error('Cet email est déjà enregistré.');
+      }
+      if (u.username.toLowerCase() === cleanUsername.toLowerCase()) {
+        cleanUsername = `${cleanUsername}_${Math.floor(100 + Math.random() * 900)}`;
+      }
+    }
+
+    const userId = 'usr_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    const newUser = {
+      id: userId,
+      username: cleanUsername,
+      email: cleanEmail,
+      password: hashPassword(password),
+      role: role === 'admin' ? 'admin' : 'user',
+      isBanned: false,
+      isEmailVerified: true, // Créé par l'administrateur => validé d'office
+      createdAt: new Date().toISOString(),
+      stats: createDefaultStats()
+    };
+
+    this.users.set(userId, newUser);
+    this.saveUsers();
+    return this.sanitizeUser(newUser);
+  }
+
+  changePassword(userId, oldPassword, newPassword) {
+    const user = this.users.get(userId);
+    if (!user) throw new Error('Utilisateur non trouvé.');
+
+    if (!verifyPassword(oldPassword, user.password)) {
+      throw new Error('L\'ancien mot de passe est incorrect.');
+    }
+
+    if (!newPassword || newPassword.trim().length < 4) {
+      throw new Error('Le nouveau mot de passe doit contenir au moins 4 caractères.');
+    }
+
+    user.password = hashPassword(newPassword);
+    this.saveUsers();
+    return this.sanitizeUser(user);
+  }
+
+  createPasswordResetToken(email) {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    let found = null;
+    for (const u of this.users.values()) {
+      if (u.email.toLowerCase() === cleanEmail) {
+        found = u;
+        break;
+      }
+    }
+    if (!found) {
+      throw new Error('Aucun compte n\'est associé à cette adresse email.');
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    found.resetPasswordToken = resetToken;
+    found.resetPasswordTokenExpires = Date.now() + 60 * 60 * 1000; // 1 heure
+    this.saveUsers();
+    return {
+      user: this.sanitizeUser(found),
+      resetToken
+    };
+  }
+
+  resetPasswordWithToken(token, newPassword) {
+    if (!token || typeof token !== 'string') {
+      throw new Error('Jeton de réinitialisation invalide.');
+    }
+    const cleanToken = token.trim();
+    let found = null;
+    for (const u of this.users.values()) {
+      if (u.resetPasswordToken === cleanToken) {
+        found = u;
+        break;
+      }
+    }
+
+    if (!found) {
+      throw new Error('Ce lien de réinitialisation est invalide ou a déjà été utilisé.');
+    }
+
+    if (found.resetPasswordTokenExpires && Date.now() > found.resetPasswordTokenExpires) {
+      throw new Error('Ce lien de réinitialisation a expiré (validité 1 heure). Veuillez refaire une demande.');
+    }
+
+    if (!newPassword || newPassword.trim().length < 4) {
+      throw new Error('Le nouveau mot de passe doit contenir au moins 4 caractères.');
+    }
+
+    found.password = hashPassword(newPassword);
+    found.isEmailVerified = true;
+    delete found.resetPasswordToken;
+    delete found.resetPasswordTokenExpires;
+    this.saveUsers();
+    return this.sanitizeUser(found);
+  }
+
   sanitizeUser(user) {
     const { password, ...safe } = user;
     return safe;
