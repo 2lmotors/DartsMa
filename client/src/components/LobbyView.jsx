@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Users, Swords, Edit3, Target, Radio, Copy, Check, Shield, Bot, User, LogIn, LogOut, Play, BarChart3, Flame, Trophy, Volume2, VolumeX } from 'lucide-react';
+import { Users, Swords, Edit3, Target, Radio, Copy, Check, Shield, Bot, User, LogIn, LogOut, Play, BarChart3, Flame, Trophy, Volume2, VolumeX, Sliders } from 'lucide-react';
 import { BOT_LEVELS } from '../utils/botEngine';
 import { getVoiceMuted, toggleVoiceMute } from '../utils/soundEffects';
+import VoiceSettingsModal from './VoiceSettingsModal';
 
 export default function LobbyView({
   currentUser,
@@ -27,10 +28,10 @@ export default function LobbyView({
   const [selectedBestOf, setSelectedBestOf] = useState(3); // 3 | 5 | 7
   const [selectedSoloLegs, setSelectedSoloLegs] = useState(1); // 1 | 2 | 3 | 4 | 5
   const [isVoiceMuted, setIsVoiceMuted] = useState(() => getVoiceMuted());
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   const handleToggleMute = () => {
-    const next = toggleVoiceMute();
-    setIsVoiceMuted(next);
+    setShowVoiceModal(true);
   };
 
   const startEdit = () => {
@@ -508,6 +509,15 @@ export default function LobbyView({
           </div>
         </div>
       )}
+
+      {/* Voice & Sound Settings Modal */}
+      <VoiceSettingsModal
+        isOpen={showVoiceModal}
+        onClose={() => {
+          setShowVoiceModal(false);
+          setIsVoiceMuted(getVoiceMuted());
+        }}
+      />
     </div>
   );
 }

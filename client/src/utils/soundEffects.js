@@ -159,6 +159,8 @@ export function playApplauseSound() {
 }
 
 let isVoiceMuted = localStorage.getItem('dartsma_voice_muted') === 'true';
+// Style de voix : 'natural' (recommandé sur Android / tablette), 'referee' (grave), 'standard'
+let voiceStyle = localStorage.getItem('dartsma_voice_style') || 'natural';
 
 export function getVoiceMuted() {
   return isVoiceMuted;
@@ -181,29 +183,62 @@ export function toggleVoiceMute() {
   return isVoiceMuted;
 }
 
-// French male voice helper
-function getFrenchMaleVoice() {
+export function getVoiceStyle() {
+  return voiceStyle;
+}
+
+export function setVoiceStyle(style) {
+  voiceStyle = style;
+  localStorage.setItem('dartsma_voice_style', style);
+}
+
+// Cache persistant des voix du système
+let availableVoices = [];
+
+function refreshVoices() {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    availableVoices = window.speechSynthesis.getVoices();
+  }
+}
+
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  refreshVoices();
+  window.speechSynthesis.onvoiceschanged = refreshVoices;
+}
+
+// Sélection intelligente de la meilleure voix française adaptée à l'appareil
+function getFrenchVoice() {
   if (!('speechSynthesis' in window)) return null;
-  const voices = window.speechSynthesis.getVoices();
+  if (!availableVoices.length) refreshVoices();
+  const voices = availableVoices.length ? availableVoices : window.speechSynthesis.getVoices();
   
-  const maleFrench = voices.find(v => 
+  // 1. Chercher d'abord les voix masculines / naturelles françaises reconnues
+  const preferredVoice = voices.find(v => 
     v.lang.startsWith('fr') && 
     (v.name.toLowerCase().includes('paul') ||
      v.name.toLowerCase().includes('thomas') ||
      v.name.toLowerCase().includes('nicolas') ||
      v.name.toLowerCase().includes('claude') ||
      v.name.toLowerCase().includes('henri') ||
-     v.name.toLowerCase().includes('male'))
+     v.name.toLowerCase().includes('google') ||
+     v.name.toLowerCase().includes('natural') ||
+     v.name.toLowerCase().includes('fr-fr-x'))
   );
 
-  if (maleFrench) return maleFrench;
-  return voices.find(v => v.lang.startsWith('fr')) || null;
+  if (preferredVoice) return preferredVoice;
+
+  // 2. Repli sur n'importe quelle voix française
+  const anyFrench = voices.find(v => v.lang.startsWith('fr'));
+  if (anyFrench) return anyFrench;
+
+  return null;
 }
 
 // English male referee voice helper (PDC Referee style)
 function getEnglishMaleVoice() {
   if (!('speechSynthesis' in window)) return null;
-  const voices = window.speechSynthesis.getVoices();
+  if (!availableVoices.length) refreshVoices();
+  const voices = availableVoices.length ? availableVoices : window.speechSynthesis.getVoices();
 
   const maleEnglish = voices.find(v => 
     (v.lang.startsWith('en-GB') || v.lang.startsWith('en-US') || v.lang.startsWith('en')) &&
@@ -226,16 +261,33 @@ export function speakFrench(text) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'fr-FR';
 
-    const voice = getFrenchMaleVoice();
+    const voice = getFrenchVoice();
     if (voice) utterance.voice = voice;
 
-    utterance.pitch = 0.68; // Tonalité grave / masculine
-    utterance.rate = 0.98;
+    // Détection appareil mobile / tablette (ex: Hotwav Tab R9 Plus)
+    const isMobileOrTablet = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (voiceStyle === 'referee' && !isMobileOrTablet) {
+      utterance.pitch = 0.75;
+      utterance.rate = 0.98;
+    } else if (voiceStyle === 'high_energy') {
+      utterance.pitch = 1.05;
+      utterance.rate = 1.05;
+    } else {
+      // Mode 'natural' (recommandé sur Android) : pitch naturel = voix nette, humaine et non robotisée
+      utterance.pitch = 1.0;
+      utterance.rate = 1.02;
+    }
 
     window.speechSynthesis.speak(utterance);
   } catch (e) {
     console.warn('Speech error:', e);
   }
+}
+
+// Fonction de test pour valider la voix directement
+export function testVoiceAnnouncement() {
+  speakFrench("Cent quatre-vingts points ! Flèche en plein cœur.");
 }
 
 export function speakEnglishReferee(text) {

@@ -163,13 +163,26 @@ export default function CameraVision({ onDartDetected, isMyTurn, disabled, onCal
 
   // Check if browser requires HTTPS for camera
   useEffect(() => {
-    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    if (window.location.protocol !== 'https:' && 
+        window.location.protocol !== 'capacitor:' &&
+        window.location.hostname !== 'localhost' && 
+        window.location.hostname !== '127.0.0.1' &&
+        !window.location.origin.includes('capacitor://')) {
       setIsHttpsRequired(true);
     }
   }, []);
 
   const switchToHttps = () => {
-    const port = window.location.port ? `:${window.location.port}` : ':5173';
+    if (typeof window === 'undefined') return;
+    const isLocalIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(window.location.hostname);
+    let port = '';
+    if (window.location.port === '5173') {
+      port = ':5173';
+    } else if (window.location.port && window.location.port !== '80' && window.location.port !== '443') {
+      port = `:${window.location.port}`;
+    } else if (isLocalIp && !window.location.port) {
+      port = ':5173';
+    }
     window.location.href = `https://${window.location.hostname}${port}${window.location.pathname}${window.location.search}`;
   };
 
@@ -183,8 +196,13 @@ export default function CameraVision({ onDartDetected, isMyTurn, disabled, onCal
       setIsStartingCamera(false);
     }, 4000);
 
-    // Redirection automatique vers HTTPS si ouvert via HTTP sur tablette distante
-    if (typeof window !== 'undefined' && window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    // Redirection automatique vers HTTPS si ouvert via HTTP sur tablette distante (hors Capacitor)
+    if (typeof window !== 'undefined' && 
+        window.location.protocol !== 'https:' && 
+        window.location.protocol !== 'capacitor:' &&
+        window.location.hostname !== 'localhost' && 
+        window.location.hostname !== '127.0.0.1' &&
+        !window.location.origin.includes('capacitor://')) {
       setIsHttpsRequired(true);
       clearTimeout(safetyTimer);
       setIsStartingCamera(false);
@@ -240,12 +258,30 @@ export default function CameraVision({ onDartDetected, isMyTurn, disabled, onCal
             });
             setFacingMode(altMode);
           } catch (err3) {
-            console.warn('Repli universel n\'importe quelle caméra:', err3);
-            // Étape 4 : Repli universel standard sans aucune contrainte (100% compatible)
-            stream = await navigator.mediaDevices.getUserMedia({
-              video: true,
-              audio: false
-            });
+            console.warn('Repli énumération matérielle des capteurs tablette:', err3);
+            try {
+              // Étape 4 : Détection explicite des capteurs vidéo réels (tablettes Android Hotwav / MediaTek)
+              const devices = await navigator.mediaDevices.enumerateDevices();
+              const videoDevices = devices.filter(d => d.kind === 'videoinput');
+              if (videoDevices.length > 0) {
+                const targetDev = mode === 'environment' 
+                  ? (videoDevices[videoDevices.length - 1] || videoDevices[0]) 
+                  : videoDevices[0];
+                stream = await navigator.mediaDevices.getUserMedia({
+                  video: { deviceId: { exact: targetDev.deviceId } },
+                  audio: false
+                });
+              } else {
+                throw new Error("Aucun capteur trouvé");
+              }
+            } catch (err4) {
+              console.warn('Repli universel n\'importe quelle caméra:', err4);
+              // Étape 5 : Repli universel standard sans aucune contrainte (100% compatible)
+              stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false
+              });
+            }
           }
         }
       }
@@ -831,28 +867,31 @@ export default function CameraVision({ onDartDetected, isMyTurn, disabled, onCal
         )}
       </div>
 
-      {/* Top Floating Controls (Visible when camera is active) */}
-      {cameraActive && (
-        <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-20 pointer-events-auto">
-          <div className="flex items-center gap-1.5">
-            <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-md flex items-center gap-1 shadow-md ${
-              motionStatus === 'motion' ? 'bg-amber-500/90 text-white animate-pulse' :
-              motionStatus === 'stabilizing' ? 'bg-blue-500/90 text-white' :
-              motionStatus === 'detected' ? 'bg-emerald-500 text-white' :
-              'bg-slate-900/80 text-slate-300'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${
-                motionStatus === 'idle' ? 'bg-emerald-400' : 'bg-white'
-              }`} />
-              {motionStatus === 'motion' ? 'Mouvement...' :
-               motionStatus === 'stabilizing' ? 'Analyse...' :
-               motionStatus === 'detected' ? 'Flèche !' :
-               (isMyTurn ? 'Prêt' : 'Attente')}
-            </div>
+      {/* Top Floating Controls - Toujours visibles pour accès permanent au statut et au calibrage */}
+      <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-20 pointer-events-auto">
+        <div className="flex items-center gap-1.5">
+          <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-md flex items-center gap-1 shadow-md ${
+            !cameraActive ? 'bg-slate-900/90 text-slate-300 border border-slate-700/60' :
+            motionStatus === 'motion' ? 'bg-amber-500/90 text-white animate-pulse' :
+            motionStatus === 'stabilizing' ? 'bg-blue-500/90 text-white' :
+            motionStatus === 'detected' ? 'bg-emerald-500 text-white' :
+            'bg-slate-900/80 text-slate-300'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              !cameraActive ? (isStartingCamera ? 'bg-amber-400 animate-ping' : 'bg-slate-500') :
+              motionStatus === 'idle' ? 'bg-emerald-400' : 'bg-white'
+            }`} />
+            {!cameraActive ? (isStartingCamera ? 'Démarrage...' : 'Caméra OFF') :
+             motionStatus === 'motion' ? 'Mouvement...' :
+             motionStatus === 'stabilizing' ? 'Analyse...' :
+             motionStatus === 'detected' ? 'Flèche !' :
+             (isMyTurn ? 'Prêt' : 'Attente')}
           </div>
+        </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Resolution indicator button */}
+        <div className="flex items-center gap-1.5">
+          {/* Resolution indicator button (visible en mode actif) */}
+          {cameraActive && (
             <button
               onClick={() => setIsCalibrating(true)}
               className="px-2 py-0.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-[10px] font-bold text-slate-300 border border-slate-700/60 backdrop-blur-md shadow flex items-center gap-1 cursor-pointer"
@@ -861,17 +900,30 @@ export default function CameraVision({ onDartDetected, isMyTurn, disabled, onCal
               <Zap className="w-3 h-3 text-emerald-400" />
               <span>{captureResolution}p</span>
             </button>
+          )}
 
-            {/* Quick Tutorial Access */}
-            <button
-              onClick={() => setShowTutorial(true)}
-              className="p-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-white backdrop-blur-md shadow transition-all active:scale-95 cursor-pointer"
-              title="Guide & Tutoriel de positionnement"
-            >
-              <HelpCircle className="w-3.5 h-3.5 text-emerald-400" />
-            </button>
+          {/* Quick Tutorial Access */}
+          <button
+            onClick={() => setShowTutorial(true)}
+            className="p-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-white backdrop-blur-md shadow transition-all active:scale-95 cursor-pointer"
+            title="Guide & Tutoriel de positionnement"
+          >
+            <HelpCircle className="w-3.5 h-3.5 text-emerald-400" />
+          </button>
 
-            {/* Unfreeze / Restart Camera stream button */}
+          {/* Bouton Toggle Numéros 1-20 */}
+          <button
+            onClick={() => setShowNumbers(!showNumbers)}
+            className={`p-1.5 rounded-full backdrop-blur-md shadow transition-all active:scale-95 cursor-pointer text-[10px] font-black px-2 ${
+              showNumbers ? 'bg-slate-900/80 text-emerald-400 border border-slate-700/60' : 'bg-slate-950/90 text-slate-500 border border-slate-800'
+            }`}
+            title="Afficher/Masquer les numéros 1-20"
+          >
+            123
+          </button>
+
+          {/* Unfreeze / Restart Camera stream button */}
+          {cameraActive && (
             <button
               onClick={() => startCamera(facingMode, captureResolution)}
               className="p-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-emerald-400 border border-slate-700/60 backdrop-blur-md shadow transition-all active:scale-95 cursor-pointer"
@@ -879,27 +931,29 @@ export default function CameraVision({ onDartDetected, isMyTurn, disabled, onCal
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
+          )}
 
-            <button
-              onClick={toggleFacingMode}
-              className="p-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-white backdrop-blur-md shadow transition-all active:scale-95 cursor-pointer"
-              title="Basculer caméra avant / arrière"
-            >
-              <Camera className="w-3.5 h-3.5" />
-            </button>
+          <button
+            onClick={toggleFacingMode}
+            className="p-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-white backdrop-blur-md shadow transition-all active:scale-95 cursor-pointer"
+            title="Basculer caméra avant / arrière"
+          >
+            <Camera className="w-3.5 h-3.5" />
+          </button>
 
-            <button
-              onClick={() => setIsCalibrating(!isCalibrating)}
-              className={`px-2.5 py-1 rounded-full text-[10px] font-bold backdrop-blur-md shadow transition-all flex items-center gap-1 active:scale-95 cursor-pointer ${
-                isCalibrating ? 'bg-yellow-400 text-slate-950 font-black' : 'bg-slate-900/80 text-white hover:bg-slate-800'
-              }`}
-            >
-              <Crosshair className="w-3 h-3" />
-              {isCalibrating ? 'OK' : 'Calibrer'}
-            </button>
-          </div>
+          {/* BOUTON CALIBRER : TOUJOURS DISPONIBLE */}
+          <button
+            onClick={() => setIsCalibrating(!isCalibrating)}
+            className={`px-2.5 py-1 rounded-full text-[10px] font-bold backdrop-blur-md shadow transition-all flex items-center gap-1 active:scale-95 cursor-pointer ${
+              isCalibrating ? 'bg-yellow-400 text-slate-950 font-black' : 'bg-slate-900/80 text-yellow-300 hover:bg-slate-800 border border-yellow-400/40'
+            }`}
+            title="Ouvrir / Fermer le panneau de calibrage de l'araignée"
+          >
+            <Crosshair className="w-3 h-3 text-yellow-400" />
+            {isCalibrating ? 'Fermer' : 'Calibrer'}
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Indicator on screen when calibrating with a specific glowing sector */}
       {isCalibrating && (
@@ -1258,7 +1312,7 @@ export default function CameraVision({ onDartDetected, isMyTurn, disabled, onCal
             </div>
           )}
 
-          <div className="flex items-center gap-1.5 w-full justify-center">
+          <div className="flex items-center gap-1.5 w-full justify-center flex-wrap">
             {isHttpsRequired ? (
               <button
                 type="button"
@@ -1277,7 +1331,7 @@ export default function CameraVision({ onDartDetected, isMyTurn, disabled, onCal
                 {isStartingCamera ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
-                    <span>Activation en cours... (Touchez pour forcer)</span>
+                    <span>Activation... (Touchez pour forcer)</span>
                   </>
                 ) : (
                   <>
@@ -1297,10 +1351,25 @@ export default function CameraVision({ onDartDetected, isMyTurn, disabled, onCal
               <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
               <span>{facingMode === 'environment' ? 'Arrière' : 'Avant'}</span>
             </button>
+
+            {/* BOUTON CALIBRER DIRECT : ACCESSIBLE SANS ATTENDRE LA CAMÉRA */}
+            <button
+              type="button"
+              onClick={() => setIsCalibrating(!isCalibrating)}
+              className={`py-2.5 px-3.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 shadow-lg ${
+                isCalibrating 
+                  ? 'bg-yellow-400 text-slate-950 font-black' 
+                  : 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 border border-yellow-500/50'
+              }`}
+              title="Ouvrir le panneau de réglage de capture motion et calibrage de l'araignée"
+            >
+              <Crosshair className="w-3.5 h-3.5 text-yellow-400" />
+              <span>{isCalibrating ? 'Fermer Calibrage' : 'Calibrer l\'araignée'}</span>
+            </button>
           </div>
 
           <p className="text-[9px] text-slate-400 text-center">
-            💡 Astuce Hotwav / Tablette : si une invite apparaît en haut de l'écran, appuyez sur <strong>« Autoriser »</strong>.
+            💡 Astuce Hotwav / Tablette : si une invite apparaît en haut de l'écran, appuyez sur <strong>« Autoriser »</strong>. Le panneau de calibrage est aussi accessible à tout moment via le bouton jaune.
           </p>
         </div>
       )}

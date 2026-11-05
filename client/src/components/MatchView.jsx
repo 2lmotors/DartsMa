@@ -9,6 +9,7 @@ import OpponentVideo from './OpponentVideo';
 import DartboardKeypad from './DartboardKeypad';
 import VictoryCelebration from './VictoryCelebration';
 import CompanionConnectModal from './CompanionConnectModal';
+import VoiceSettingsModal from './VoiceSettingsModal';
 import { CHECKOUT_SUGGESTIONS } from '../utils/dartCalculations';
 import { aiRefereeVerifyThrow, getAiTacticalAdvice } from '../utils/aiAssistant';
 import {
@@ -51,10 +52,10 @@ export default function MatchView({
 
   // Voice Mute State
   const [isVoiceMuted, setIsVoiceMuted] = useState(() => getVoiceMuted());
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   const handleToggleMute = () => {
-    const next = toggleVoiceMute();
-    setIsVoiceMuted(next);
+    setShowVoiceModal(true);
   };
 
   // Mobile View Mode
@@ -1021,6 +1022,15 @@ export default function MatchView({
         onClose={() => setShowCompanionModal(false)}
         roomId={roomId}
         connectedCompanion={connectedCompanion}
+      />
+
+      {/* Voice & Sound Settings Modal */}
+      <VoiceSettingsModal
+        isOpen={showVoiceModal}
+        onClose={() => {
+          setShowVoiceModal(false);
+          setIsVoiceMuted(getVoiceMuted());
+        }}
       />
     </div>
   );

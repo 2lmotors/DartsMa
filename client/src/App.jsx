@@ -13,8 +13,17 @@ if (typeof window !== 'undefined' &&
     window.location.protocol === 'http:' && 
     window.location.hostname !== 'localhost' && 
     window.location.hostname !== '127.0.0.1' &&
+    window.location.protocol !== 'capacitor:' &&
     !window.location.origin.includes('capacitor://')) {
-  const port = window.location.port ? `:${window.location.port}` : ':5173';
+  const isLocalIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(window.location.hostname);
+  let port = '';
+  if (window.location.port === '5173') {
+    port = ':5173';
+  } else if (window.location.port && window.location.port !== '80' && window.location.port !== '443') {
+    port = `:${window.location.port}`;
+  } else if (isLocalIp && !window.location.port) {
+    port = ':5173';
+  }
   window.location.replace(`https://${window.location.hostname}${port}${window.location.pathname}${window.location.search}`);
 }
 
