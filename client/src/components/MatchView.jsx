@@ -658,55 +658,59 @@ export default function MatchView({
       )}
 
       {/* 1. Header Bar */}
-      <header className="flex items-center justify-between px-2.5 py-1.5 pt-safe bg-slate-900 border-b border-slate-800 shrink-0 z-30">
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={onLeaveGame}
-            className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition active:scale-90"
-            title="Quitter"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <div className="flex items-center gap-1">
-            <span className="text-xs font-black tracking-wider text-emerald-400">DARTSMA</span>
-            {gameState?.isTournamentMatch && (
-              <span className="text-[10px] bg-amber-500/25 text-amber-300 border border-amber-500/50 px-1.5 py-0.2 rounded font-black flex items-center gap-0.5 animate-pulse">
-                🏆 TOURNOI
+      <header className="flex flex-col bg-slate-900 border-b border-slate-800 shrink-0 z-30 pt-safe">
+        {/* Top Row: Navigation + Turn Indicator */}
+        <div className="flex items-center justify-between px-2.5 py-1.5 gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <button
+              onClick={onLeaveGame}
+              className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition active:scale-90 shrink-0"
+              title="Quitter"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-1 truncate">
+              <span className="text-xs font-black tracking-wider text-emerald-400">DARTSMA</span>
+              {gameState?.isTournamentMatch && (
+                <span className="text-[10px] bg-amber-500/25 text-amber-300 border border-amber-500/50 px-1.5 py-0.2 rounded font-black flex items-center gap-0.5 animate-pulse shrink-0">
+                  🏆 TOURNOI
+                </span>
+              )}
+              <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded font-bold shrink-0">
+                {gameState?.gameType || '501'}
+              </span>
+              <span className="text-[10px] bg-slate-800 text-slate-300 border border-slate-700 px-1.5 py-0.2 rounded font-bold shrink-0">
+                {isSoloMatch ? `${gameState?.legsToWin} leg(s)` : `BO${gameState?.bestOf || 3}`}
+              </span>
+            </div>
+          </div>
+
+          {/* Turn or Bull-Off Pill */}
+          <div className="flex items-center shrink-0">
+            {isBullOff ? (
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-500 text-slate-950 shadow animate-pulse flex items-center gap-1">
+                <Target className="w-3.5 h-3.5" />
+                TIR AU BULL
+              </span>
+            ) : (
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black shadow flex items-center gap-1 ${
+                isMyTurn
+                  ? 'bg-emerald-500 text-slate-950 animate-pulse'
+                  : 'bg-slate-800 text-slate-400'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isMyTurn ? 'bg-slate-950' : 'bg-slate-500'}`} />
+                {isMyTurn ? 'À VOUS' : (opponentPlayer?.username || 'ADVERSAIRE')}
               </span>
             )}
-            <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded font-bold">
-              {gameState?.gameType || '501'}
-            </span>
-            <span className="text-[10px] bg-slate-800 text-slate-300 border border-slate-700 px-1.5 py-0.2 rounded font-bold">
-              {isSoloMatch ? `${gameState?.legsToWin} leg(s)` : `BO${gameState?.bestOf || 3}`}
-            </span>
           </div>
         </div>
 
-        {/* Turn or Bull-Off Pill */}
-        <div className="flex items-center">
-          {isBullOff ? (
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-500 text-slate-950 shadow animate-pulse flex items-center gap-1">
-              <Target className="w-3.5 h-3.5" />
-              TIR AU BULLSEYE
-            </span>
-          ) : (
-            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black shadow flex items-center gap-1 ${
-              isMyTurn
-                ? 'bg-emerald-500 text-slate-950 animate-pulse'
-                : 'bg-slate-800 text-slate-400'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isMyTurn ? 'bg-slate-950' : 'bg-slate-500'}`} />
-              {isMyTurn ? 'À VOUS' : (opponentPlayer?.username || 'ADVERSAIRE')}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1.5">
+        {/* Action Controls Row - Centered with Smooth Horizontal Scroll on Mobile/Tablet */}
+        <div className="flex items-center justify-start sm:justify-center gap-1.5 px-2.5 pb-1.5 overflow-x-auto scrollbar-none w-full">
           {/* AI Referee & Tactical Coach Toggle */}
           <button
             onClick={() => setIsAiRefereeActive(!isAiRefereeActive)}
-            className={`px-2 py-1 rounded-lg border text-[11px] font-black flex items-center gap-1 transition active:scale-95 shadow cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg border text-[11px] font-black flex items-center gap-1 transition active:scale-95 shadow cursor-pointer shrink-0 ${
               isAiRefereeActive
                 ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300'
                 : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-400'
@@ -714,13 +718,13 @@ export default function MatchView({
             title="Activer/Désactiver l'Arbitre & Coach IA (anti-erreur et suggestions de checkout)"
           >
             <Bot className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden sm:inline">IA Assist</span>
+            <span>IA Assist</span>
           </button>
 
           {/* Satellite Companion Camera Button */}
           <button
             onClick={() => setShowCompanionModal(true)}
-            className={`px-2 py-1 rounded-lg border text-[11px] font-black flex items-center gap-1 transition active:scale-95 shadow cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg border text-[11px] font-black flex items-center gap-1 transition active:scale-95 shadow cursor-pointer shrink-0 ${
               connectedCompanion
                 ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300'
                 : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
@@ -728,26 +732,27 @@ export default function MatchView({
             title="Connecter une caméra satellite (smartphone / tablette)"
           >
             <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden sm:inline">Cam Satellite</span>
+            <span>Cam Satellite</span>
             {connectedCompanion && (
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             )}
           </button>
 
-          {/* Forfeit button */}
+          {/* Keypad / Camera Toggle */}
           <button
-            onClick={handleForfeit}
-            className="px-2 py-1 rounded-lg bg-rose-950/70 hover:bg-rose-900 border border-rose-500/50 text-rose-300 text-[11px] font-black flex items-center gap-1 transition active:scale-95 shadow"
-            title="Déclarer forfait pour ce match"
+            onClick={() => setInputMode(inputMode === 'camera' ? 'keypad' : 'camera')}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition shrink-0 ${
+              inputMode === 'keypad' ? 'bg-emerald-500 text-slate-950 shadow' : 'bg-slate-800 text-slate-200'
+            }`}
           >
-            <Flag className="w-3.5 h-3.5 text-rose-400" />
-            <span className="hidden sm:inline">Abandonner</span>
+            {inputMode === 'camera' ? <Keyboard className="w-3.5 h-3.5" /> : <Camera className="w-3.5 h-3.5" />}
+            <span>{inputMode === 'camera' ? 'Pavé' : 'Caméra'}</span>
           </button>
 
           {/* Mute Voice Toggle */}
           <button
             onClick={handleToggleMute}
-            className={`p-1.5 rounded-lg border transition active:scale-95 ${
+            className={`p-1.5 rounded-lg border transition active:scale-95 shrink-0 ${
               isVoiceMuted
                 ? 'bg-rose-950/80 border-rose-500/50 text-rose-400'
                 : 'bg-slate-800 border-slate-700 text-emerald-400 hover:text-emerald-300'
@@ -757,15 +762,14 @@ export default function MatchView({
             {isVoiceMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
           </button>
 
-          {/* Keypad / Camera Toggle */}
+          {/* Forfeit button */}
           <button
-            onClick={() => setInputMode(inputMode === 'camera' ? 'keypad' : 'camera')}
-            className={`px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition ${
-              inputMode === 'keypad' ? 'bg-emerald-500 text-slate-950 shadow' : 'bg-slate-800 text-slate-200'
-            }`}
+            onClick={handleForfeit}
+            className="px-2.5 py-1 rounded-lg bg-rose-950/70 hover:bg-rose-900 border border-rose-500/50 text-rose-300 text-[11px] font-black flex items-center gap-1 transition active:scale-95 shadow shrink-0"
+            title="Déclarer forfait pour ce match"
           >
-            {inputMode === 'camera' ? <Keyboard className="w-3.5 h-3.5" /> : <Camera className="w-3.5 h-3.5" />}
-            <span>{inputMode === 'camera' ? 'Pavé' : 'Caméra'}</span>
+            <Flag className="w-3.5 h-3.5 text-rose-400" />
+            <span>Abandonner</span>
           </button>
         </div>
       </header>

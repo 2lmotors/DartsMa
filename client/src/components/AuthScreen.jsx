@@ -241,8 +241,8 @@ export default function AuthScreen({ onAuthSuccess, backendUrl, socket }) {
   // ÉCRAN A : Réinitialisation du mot de passe (suite à clic sur lien reçu par email)
   if (resetToken) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] w-full bg-slate-950 text-slate-100 p-4 select-none">
-        <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-center">
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] w-full bg-slate-950 text-slate-100 p-3 sm:p-4 select-none">
+        <div className="w-full max-w-sm max-h-[94dvh] overflow-y-auto scrollbar-none bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-center my-auto">
           <div className="w-14 h-14 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-sky-500/20">
             <Key className="w-7 h-7" />
           </div>
@@ -326,8 +326,8 @@ export default function AuthScreen({ onAuthSuccess, backendUrl, socket }) {
   // ÉCRAN B : Demande de réinitialisation ("Mot de passe oublié ?")
   if (isForgotPassword) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] w-full bg-slate-950 text-slate-100 p-4 select-none">
-        <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-center">
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] w-full bg-slate-950 text-slate-100 p-3 sm:p-4 select-none">
+        <div className="w-full max-w-sm max-h-[94dvh] overflow-y-auto scrollbar-none bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-center my-auto">
           <div className="w-14 h-14 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-sky-500/20">
             <Key className="w-7 h-7" />
           </div>
@@ -430,8 +430,8 @@ export default function AuthScreen({ onAuthSuccess, backendUrl, socket }) {
   // ÉCRAN C : Attente de validation de l'adresse email (Inscription)
   if (pendingVerification) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] w-full bg-slate-950 text-slate-100 p-4 select-none">
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative text-center">
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] w-full bg-slate-950 text-slate-100 p-3 sm:p-4 select-none">
+        <div className="w-full max-w-md max-h-[94dvh] overflow-y-auto scrollbar-none bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative text-center my-auto">
           {isVerifiedSuccess ? (
             <div className="py-8 space-y-4 animate-in fade-in zoom-in-95 duration-300">
               <div className="w-20 h-20 bg-emerald-500/20 border-2 border-emerald-500 rounded-3xl flex items-center justify-center mx-auto text-emerald-400 shadow-xl shadow-emerald-500/30">
@@ -554,8 +554,8 @@ export default function AuthScreen({ onAuthSuccess, backendUrl, socket }) {
 
   // ÉCRAN D : Formulaire standard Inscription / Connexion
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] w-full bg-slate-950 text-slate-100 p-4 select-none">
-      <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl relative">
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] w-full bg-slate-950 text-slate-100 p-3 sm:p-4 select-none">
+      <div className="w-full max-w-sm max-h-[94dvh] overflow-y-auto scrollbar-none bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl relative my-auto">
         {/* Brand Header */}
         <div className="text-center mb-6">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/20">

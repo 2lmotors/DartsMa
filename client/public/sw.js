@@ -1,5 +1,5 @@
 // DartsMa Service Worker - PWA Network-First Strategy for Instant Updates
-const CACHE_NAME = 'dartsma-v1.0.3';
+const CACHE_NAME = 'dartsma-v1.0.4';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/icon-192.svg',

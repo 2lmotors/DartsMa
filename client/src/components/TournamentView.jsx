@@ -364,13 +364,13 @@ export default function TournamentView({
         )}
 
         {/* Top Header */}
-        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-slate-800 bg-slate-900/95 shrink-0 gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex flex-col sm:flex-row items-center justify-between p-3 sm:p-4 border-b border-slate-800 bg-slate-900/95 shrink-0 gap-2.5 text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-2.5 min-w-0 w-full sm:w-auto">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-emerald-400 text-slate-950 flex items-center justify-center shadow-lg shadow-amber-500/20 shrink-0">
               <Trophy className="w-6 h-6 font-black" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5">
                 <h2 className="text-base sm:text-lg font-black text-white truncate leading-tight">
                   {tournament?.name || 'Grand Tournoi DartsMa'}
                 </h2>
@@ -402,19 +402,19 @@ export default function TournamentView({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center justify-center gap-2 shrink-0 w-full sm:w-auto">
             {tournament?.status === 'registration' && (
               isUserRegistered ? (
                 <button
                   onClick={handleUnregister}
-                  className="px-3 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-500/40 text-xs font-bold transition active:scale-95"
+                  className="px-3.5 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-500/40 text-xs font-bold transition active:scale-95"
                 >
                   Me désinscrire
                 </button>
               ) : (
                 <button
                   onClick={handleRegister}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-1"
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-1"
                 >
                   <Trophy className="w-3.5 h-3.5" />
                   <span>M'inscrire au Tournoi</span>
@@ -425,7 +425,7 @@ export default function TournamentView({
             <button
               onClick={fetchTournament}
               disabled={loading}
-              className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
               title="Rafraîchir"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -433,7 +433,7 @@ export default function TournamentView({
 
             <button
               onClick={onClose}
-              className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
               title="Fermer"
             >
               <X className="w-4 h-4" />
@@ -443,20 +443,20 @@ export default function TournamentView({
 
         {/* Messages Feedback */}
         {successMsg && (
-          <div className="bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-xs p-2.5 sm:p-3 mx-3 sm:mx-4 mt-3 rounded-2xl flex items-center gap-2 shrink-0">
+          <div className="bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-xs p-2.5 sm:p-3 mx-3 sm:mx-4 mt-3 rounded-2xl flex items-center justify-center gap-2 shrink-0 text-center">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{successMsg}</span>
           </div>
         )}
         {error && (
-          <div className="bg-rose-950/90 border border-rose-500/60 text-rose-300 text-xs p-2.5 sm:p-3 mx-3 sm:mx-4 mt-3 rounded-2xl flex items-start gap-2 shrink-0">
+          <div className="bg-rose-950/90 border border-rose-500/60 text-rose-300 text-xs p-2.5 sm:p-3 mx-3 sm:mx-4 mt-3 rounded-2xl flex items-start justify-center gap-2 shrink-0 text-center">
             <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* Tab Navigation */}
-        <div className="flex items-center gap-1 p-2 px-3 sm:px-4 bg-slate-950/60 border-b border-slate-800 overflow-x-auto shrink-0 scrollbar-none">
+        {/* Tab Navigation - Centered on Tablet/Desktop with Smooth Scrolling on Mobile */}
+        <div className="flex items-center justify-start sm:justify-center gap-1.5 p-2 px-3 sm:px-4 bg-slate-950/80 border-b border-slate-800 overflow-x-auto shrink-0 scrollbar-none">
           <button
             onClick={() => setActiveTab('classement')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5 ${
@@ -572,8 +572,12 @@ export default function TournamentView({
                   <p className="text-xs text-slate-500 mt-1">Inscrivez-vous pour lancer la compétition !</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/40">
-                  <table className="w-full text-left text-xs text-slate-300 min-w-[560px]">
+                <>
+                  <div className="text-[10px] text-slate-400 text-center sm:hidden pb-1">
+                    ↔ Défilez horizontalement pour voir tous les résultats (L+, L-, Diff, Points)
+                  </div>
+                  <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/40 scrollbar-none">
+                    <table className="w-full text-left text-xs text-slate-300 min-w-[560px]">
                     <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                       <tr>
                         <th className="p-3 text-center w-12">Rang</th>
@@ -639,7 +643,8 @@ export default function TournamentView({
                     </tbody>
                   </table>
                 </div>
-              )}
+              </>
+            )}
             </div>
           )}
 
@@ -1296,3 +1301,4 @@ export default function TournamentView({
     </div>
   );
 }
+

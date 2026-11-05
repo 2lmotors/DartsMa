@@ -41,20 +41,20 @@ export default function StatsView({ currentUser, onClose, backendUrl }) {
     <div className="flex flex-col h-[100dvh] max-h-[100dvh] w-full max-w-2xl mx-auto bg-slate-950 text-slate-100 p-3 sm:p-5 pt-safe pb-safe overflow-hidden select-none">
       {/* Top Header */}
       <header className="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 transition active:scale-95"
+            className="p-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 transition active:scale-95 shrink-0"
             title="Retour au lobby"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <h1 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-emerald-400" />
-              Statistiques de {currentUser?.username}
+          <div className="min-w-0">
+            <h1 className="text-sm sm:text-base md:text-lg font-black text-white flex items-center gap-1.5 sm:gap-2 truncate">
+              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 shrink-0" />
+              <span className="truncate">Statistiques de {currentUser?.username}</span>
             </h1>
-            <p className="text-[11px] text-slate-400">Évolution de vos performances & historique</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">Évolution de vos performances & historique</p>
           </div>
         </div>
 

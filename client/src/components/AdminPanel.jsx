@@ -204,42 +204,53 @@ export default function AdminPanel({ isOpen, onClose, currentAdmin, backendUrl }
     >
       <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl h-full max-h-[96dvh] sm:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-slate-800 bg-slate-900/95 shrink-0 gap-2">
-          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0">
-              <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="flex flex-col sm:flex-row items-center justify-between p-3 sm:p-4 border-b border-slate-800 bg-slate-900/95 shrink-0 gap-2.5">
+          <div className="flex items-center justify-between w-full sm:w-auto gap-2 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0">
+                <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-base md:text-lg font-black text-white flex items-center gap-1.5 sm:gap-2 truncate">
+                  <span className="truncate">Panneau Admin</span>
+                  <span className="text-[9px] sm:text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-bold shrink-0">SuperAdmin</span>
+                </h2>
+                <p className="text-[10px] sm:text-xs text-slate-400 hidden xs:block truncate">Gestion des comptes, joueurs et matchs</p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <h2 className="text-sm sm:text-base md:text-lg font-black text-white flex items-center gap-1.5 sm:gap-2 truncate">
-                <span className="truncate">Panneau Admin</span>
-                <span className="text-[9px] sm:text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-bold shrink-0">SuperAdmin</span>
-              </h2>
-              <p className="text-[10px] sm:text-xs text-slate-400 hidden xs:block truncate">Gestion des comptes, joueurs et matchs</p>
-            </div>
+
+            <button
+              onClick={onClose}
+              className="sm:hidden p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer shrink-0"
+              title="Fermer"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          {/* Centered touch-scroll action menu */}
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 w-full sm:w-auto overflow-x-auto scrollbar-none py-0.5">
             <button
               onClick={() => { setShowAddUserModal(true); setAddError(''); setAddSuccess(''); }}
-              className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center gap-1.5 transition shadow active:scale-95 shrink-0 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center gap-1.5 transition shadow active:scale-95 shrink-0 cursor-pointer"
               title="Ajouter manuellement un utilisateur avec email et mot de passe"
             >
               <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Ajouter un joueur</span>
+              <span>+ Joueur</span>
             </button>
             <button
               onClick={onClose}
-              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs flex items-center gap-1.5 transition shadow active:scale-95 shrink-0 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs flex items-center gap-1.5 transition shadow active:scale-95 shrink-0 cursor-pointer"
               title="Retour à la page d'accueil"
             >
               <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
-              <span className="hidden sm:inline">Accueil</span>
+              <span>Accueil</span>
             </button>
             <button
               type="button"
               onClick={fetchUsers}
               disabled={loading}
-              className={`px-2.5 py-1.5 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow cursor-pointer shrink-0 ${
+              className={`px-3 py-1.5 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow cursor-pointer shrink-0 ${
                 justRefreshed
                   ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300'
                   : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
@@ -247,11 +258,11 @@ export default function AdminPanel({ isOpen, onClose, currentAdmin, backendUrl }
               title="Rafraîchir les données et statistiques"
             >
               <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{loading ? 'Chargement...' : justRefreshed ? 'Actualisé !' : 'Actualiser'}</span>
+              <span>{loading ? '...' : justRefreshed ? 'Actualisé !' : 'Actualiser'}</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
+              className="hidden sm:flex p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer shrink-0"
               title="Fermer"
             >
               <X className="w-4 h-4" />
@@ -292,7 +303,11 @@ export default function AdminPanel({ isOpen, onClose, currentAdmin, backendUrl }
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/40">
+          <div className="text-[10px] text-slate-400 text-center sm:hidden pb-1">
+            ↔ Défilez horizontalement pour voir toutes les colonnes
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/40 scrollbar-none">
             <table className="w-full text-left text-xs text-slate-300 min-w-[500px] sm:min-w-full">
               <thead className="bg-slate-950 text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-wider border-b border-slate-800">
                 <tr>

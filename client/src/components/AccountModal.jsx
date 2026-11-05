@@ -62,7 +62,7 @@ export default function AccountModal({ isOpen, onClose, currentUser, backendUrl,
 
   return (
     <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 z-50 animate-in fade-in select-none">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md max-h-[92dvh] overflow-y-auto scrollbar-none p-5 sm:p-6 shadow-2xl relative">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
           <div className="flex items-center gap-2">

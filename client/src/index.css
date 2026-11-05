@@ -50,3 +50,13 @@
 .pr-safe {
   padding-right: max(8px, env(safe-area-inset-right));
 }
+
+/* Hide scrollbar while preserving smooth touch scrolling */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
