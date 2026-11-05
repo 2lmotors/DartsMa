@@ -13,7 +13,13 @@ app.use(express.json());
 
 // Serve static client if built
 const clientDist = path.join(__dirname, '../client/dist');
-app.use(express.static(clientDist));
+app.use(express.static(clientDist, {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html') || filePath.endsWith('sw.js')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  }
+}));
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -942,6 +948,7 @@ io.on('connection', (socket) => {
 
 // Fallback to client SPA for any non-API route
 app.use((req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(clientDist, 'index.html'));
 });
 

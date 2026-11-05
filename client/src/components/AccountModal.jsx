@@ -211,3 +211,4 @@ export default function AccountModal({ isOpen, onClose, currentUser, backendUrl,
     </div>
   );
 }
+
