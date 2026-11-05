@@ -368,19 +368,19 @@ export default function LobbyView({
             <label className="block text-[11px] font-bold text-slate-300">
               Nombre de manches (legs) :
             </label>
-            <div className="grid grid-cols-5 gap-1 sm:gap-1.5">
+            <div className="grid grid-cols-5 gap-1.5">
               {[1, 2, 3, 4, 5].map((num) => (
                 <button
                   key={num}
                   type="button"
                   onClick={() => setSelectedSoloLegs(num)}
-                  className={`py-2 rounded-lg font-black text-xs border transition truncate ${
+                  className={`py-2 rounded-lg font-black text-xs border transition ${
                     selectedSoloLegs === num
                       ? 'bg-blue-500 text-slate-950 border-blue-400 shadow-md shadow-blue-500/20'
                       : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
                   }`}
                 >
-                  <span className="text-[10px] sm:text-xs">{num} {num === 1 ? 'leg' : 'legs'}</span>
+                  {num} {num === 1 ? 'leg' : 'legs'}
                 </button>
               ))}
             </div>

@@ -572,12 +572,8 @@ export default function TournamentView({
                   <p className="text-xs text-slate-500 mt-1">Inscrivez-vous pour lancer la compétition !</p>
                 </div>
               ) : (
-                <>
-                  <div className="text-[10px] text-slate-400 text-center sm:hidden pb-1">
-                    ↔ Défilez horizontalement pour voir tous les résultats (L+, L-, Diff, Points)
-                  </div>
-                  <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/40 scrollbar-none">
-                    <table className="w-full text-left text-xs text-slate-300 min-w-[560px]">
+                <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/40">
+                  <table className="w-full text-left text-xs text-slate-300 min-w-[560px]">
                     <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                       <tr>
                         <th className="p-3 text-center w-12">Rang</th>
@@ -643,8 +639,7 @@ export default function TournamentView({
                     </tbody>
                   </table>
                 </div>
-              </>
-            )}
+              )}
             </div>
           )}
 

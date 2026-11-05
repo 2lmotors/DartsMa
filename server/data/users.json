@@ -379,5 +379,28 @@
       "averagePerMatch": 0,
       "history": []
     }
+  },
+  {
+    "id": "admin_mario_1793907796104",
+    "username": "Mario",
+    "email": "mario@hotmail.com",
+    "password": "1d96716760c522dc195993a049f950d4:284f8ac0a65203c1e8f5d7a4eab77dd2603a3effd7aea18e64949256c538c0d1f748701b3097daf1cef5b0f5e264ce34fd809f214a11a13cd176677c084bca84",
+    "role": "admin",
+    "isBanned": false,
+    "isEmailVerified": true,
+    "createdAt": "2026-11-05T19:43:16.167Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "legsPlayed": 0,
+      "legsWon": 0,
+      "legsLost": 0,
+      "totalDartsThrown": 0,
+      "totalPointsScored": 0,
+      "averagePerDart": 0,
+      "averagePerMatch": 0,
+      "history": []
+    }
   }
 ]

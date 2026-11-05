@@ -92,8 +92,9 @@ class Database {
   }
 
   ensureDefaultAdmin() {
-    const adminExists = Array.from(this.users.values()).some(u => u.role === 'admin');
-    if (!adminExists) {
+    // 1. Compte admin système par défaut
+    const defaultAdmin = Array.from(this.users.values()).find(u => u.email.toLowerCase() === 'admin@dartsma.com');
+    if (!defaultAdmin) {
       const adminId = 'admin_' + Date.now();
       const admin = {
         id: adminId,
@@ -107,9 +108,36 @@ class Database {
         stats: createDefaultStats()
       };
       this.users.set(adminId, admin);
-      this.saveUsers();
-      console.log('👑 Compte administrateur par défaut créé : admin@dartsma.com / admin123');
+      console.log('👑 Compte administrateur système : admin@dartsma.com / admin123');
     }
+
+    // 2. Compte administrateur principal Mario
+    let mario = Array.from(this.users.values()).find(u => u.email.toLowerCase() === 'mario@hotmail.com');
+    if (mario) {
+      mario.role = 'admin';
+      mario.password = hashPassword('123456');
+      mario.isBanned = false;
+      mario.isEmailVerified = true;
+      this.users.set(mario.id, mario);
+      console.log('👑 Accès Administrateur configuré pour mario@hotmail.com / 123456');
+    } else {
+      const marioId = 'admin_mario_' + Date.now();
+      const newMario = {
+        id: marioId,
+        username: 'Mario',
+        email: 'mario@hotmail.com',
+        password: hashPassword('123456'),
+        role: 'admin',
+        isBanned: false,
+        isEmailVerified: true,
+        createdAt: new Date().toISOString(),
+        stats: createDefaultStats()
+      };
+      this.users.set(marioId, newMario);
+      console.log('👑 Nouveau compte Administrateur créé : mario@hotmail.com / 123456');
+    }
+
+    this.saveUsers();
   }
 
   register(username, email, password) {
