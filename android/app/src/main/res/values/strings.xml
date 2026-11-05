@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DartsMa</string>
+    <string name="title_activity_main">DartsMa</string>
+    <string name="package_name">com.dartsma.app</string>
+    <string name="custom_url_scheme">com.dartsma.app</string>
+</resources>

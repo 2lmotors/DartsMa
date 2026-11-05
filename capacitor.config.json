@@ -1,0 +1,13 @@
+{
+  "appId": "com.dartsma.app",
+  "appName": "DartsMa",
+  "webDir": "client/dist",
+  "server": {
+    "cleartext": true,
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
+

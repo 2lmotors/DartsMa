@@ -1,0 +1,732 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const cors = require('cors');
+const path = require('path');
+const os = require('os');
+const db = require('./db');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Serve static client if built
+const clientDist = path.join(__dirname, '../client/dist');
+app.use(express.static(clientDist));
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
+// Port
+const PORT = process.env.PORT || 4000;
+
+// State management
+const sockets = new Map(); // socketId -> userSession { id, username, email, role, socketId, status: 'idle' | 'in_game' }
+const challenges = new Map(); // challengeId -> { id, from, to, gameType, bestOf }
+const games = new Map(); // roomId -> gameState
+
+function broadcastLobby() {
+  const userList = Array.from(sockets.values()).map(u => ({
+    id: u.id,
+    socketId: u.socketId,
+    username: u.username,
+    role: u.role,
+    status: u.status
+  }));
+  io.emit('lobby:users', userList);
+}
+
+// REST Auth Endpoints
+app.post('/api/auth/register', (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Tous les champs sont requis.' });
+    }
+    const user = db.register(username, email, password);
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/auth/login', (req, res) => {
+  try {
+    const { identifier, password } = req.body;
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'Identifiant et mot de passe requis.' });
+    }
+    const user = db.login(identifier, password);
+
+    // Déconnexion immédiate de toute ancienne session active sur un autre appareil
+    for (const [sId, sess] of sockets.entries()) {
+      if (sess.id === user.id) {
+        io.to(sId).emit('auth:multiple_sessions', {
+          message: 'Connexion interrompue : ce compte a été connecté sur un autre appareil.'
+        });
+        const targetSock = io.sockets.sockets.get(sId);
+        if (targetSock) {
+          targetSock.disconnect(true);
+        }
+        sockets.delete(sId);
+      }
+    }
+
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Network info endpoint for companion QR code generation
+app.get('/api/network-info', (req, res) => {
+  try {
+    const interfaces = os.networkInterfaces();
+    const ips = [];
+    for (const name of Object.keys(interfaces)) {
+      for (const net of interfaces[name]) {
+        if (net.family === 'IPv4' && !net.internal) {
+          ips.push({ name, address: net.address });
+        }
+      }
+    }
+    const wifi = ips.find(i => /wi-?fi|wlan/i.test(i.name)) || ips[0];
+    res.json({ 
+      ips, 
+      primaryIp: wifi?.address || '192.168.1.51' 
+    });
+  } catch (err) {
+    res.json({ 
+      ips: [{ name: 'Wi-Fi', address: '192.168.1.51' }], 
+      primaryIp: '192.168.1.51' 
+    });
+  }
+});
+
+// Admin REST endpoints
+app.get('/api/admin/users', (req, res) => {
+  const adminId = req.headers['x-admin-id'];
+  const user = db.getUserById(adminId);
+  if (!user || user.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès administrateur requis.' });
+  }
+  const users = db.getAllUsers();
+  res.json({ users, activeGamesCount: games.size, onlineSocketsCount: sockets.size });
+});
+
+app.post('/api/admin/toggle-ban', (req, res) => {
+  const adminId = req.headers['x-admin-id'];
+  const admin = db.getUserById(adminId);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès refusé.' });
+  }
+  try {
+    const updated = db.toggleBan(req.body.userId);
+    for (const [sId, sess] of sockets.entries()) {
+      if (sess.id === req.body.userId) {
+        io.to(sId).emit('auth:banned', { message: 'Votre compte a été banni.' });
+        const targetSock = io.sockets.sockets.get(sId);
+        if (targetSock) targetSock.disconnect(true);
+      }
+    }
+    res.json({ success: true, user: updated });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete('/api/admin/user/:id', (req, res) => {
+  const adminId = req.headers['x-admin-id'];
+  const admin = db.getUserById(adminId);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès refusé.' });
+  }
+  try {
+    db.deleteUser(req.params.id);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.post('/api/admin/user/:id/reset-stats', (req, res) => {
+  const adminId = req.headers['x-admin-id'];
+  const admin = db.getUserById(adminId);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès refusé.' });
+  }
+  try {
+    const updated = db.resetUserStats(req.params.id);
+    // Notify user if currently connected
+    for (const [sId, sess] of sockets.entries()) {
+      if (sess.id === req.params.id) {
+        sess.stats = updated.stats;
+        io.to(sId).emit('user:stats_updated', { stats: updated.stats });
+      }
+    }
+    res.json({ success: true, user: updated });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.post('/api/admin/user/:id/toggle-role', (req, res) => {
+  const adminId = req.headers['x-admin-id'];
+  const admin = db.getUserById(adminId);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès refusé. Droits administrateur requis.' });
+  }
+
+  const targetId = req.params.id;
+  if (targetId === adminId) {
+    return res.status(400).json({ error: 'Vous ne pouvez pas modifier votre propre rôle administrateur.' });
+  }
+
+  try {
+    const updated = db.toggleRole(targetId);
+
+    // Update active socket session if connected
+    for (const [sId, sess] of sockets.entries()) {
+      if (sess.id === targetId) {
+        sess.role = updated.role;
+        io.to(sId).emit('user:role_updated', { role: updated.role });
+      }
+    }
+    broadcastLobby();
+
+    res.json({ success: true, user: updated });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// User Statistics endpoints
+app.post('/api/user/record-match', (req, res) => {
+  try {
+    const { userId, matchData } = req.body;
+    if (!userId || !matchData) return res.status(400).json({ error: 'Données manquantes.' });
+    const updatedUser = db.recordMatchResult(userId, matchData);
+    if (!updatedUser) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+    res.json({ success: true, user: updatedUser });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/user/:id/stats', (req, res) => {
+  const user = db.getUserById(req.params.id);
+  if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+  res.json({ stats: user.stats, username: user.username });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', onlineUsers: sockets.size, activeGames: games.size });
+});
+
+// Socket Connections
+io.on('connection', (socket) => {
+  let user = {
+    id: 'guest_' + socket.id,
+    socketId: socket.id,
+    username: 'Invité_' + Math.floor(100 + Math.random() * 900),
+    role: 'user',
+    status: 'idle'
+  };
+
+  sockets.set(socket.id, user);
+
+  socket.on('auth:authenticate', ({ userId }) => {
+    const dbUser = db.getUserById(userId);
+    if (dbUser && !dbUser.isBanned) {
+      // Déconnexion de toute autre session active sur un autre appareil pour ce compte (sauf capteur satellite)
+      for (const [existingSocketId, existingUser] of sockets.entries()) {
+        const existingSockObj = io.sockets.sockets.get(existingSocketId);
+        if (existingSocketId !== socket.id && existingUser.id === dbUser.id && !existingSockObj?.isCompanion) {
+          io.to(existingSocketId).emit('auth:multiple_sessions', {
+            message: 'Connexion interrompue : ce compte a été connecté sur un autre appareil.'
+          });
+          const oldSock = io.sockets.sockets.get(existingSocketId);
+          if (oldSock) {
+            oldSock.disconnect(true);
+          }
+          sockets.delete(existingSocketId);
+        }
+      }
+
+      user.id = dbUser.id;
+      user.username = dbUser.username;
+      user.email = dbUser.email;
+      user.role = dbUser.role;
+      socket.emit('auth:authenticated', dbUser);
+      broadcastLobby();
+    }
+  });
+
+  socket.emit('auth:init', {
+    id: user.id,
+    username: user.username,
+    role: user.role
+  });
+
+  broadcastLobby();
+
+  // Challenge another player (with bestOf format)
+  socket.on('challenge:send', ({ toUserId, gameType = '501', bestOf = 3 }) => {
+    const targetUser = Array.from(sockets.values()).find(u => u.id === toUserId || u.socketId === toUserId);
+    if (!targetUser || targetUser.status !== 'idle') {
+      socket.emit('challenge:error', { message: 'Le joueur n\'est pas disponible.' });
+      return;
+    }
+
+    const challengeId = `chal_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const challengeData = {
+      challengeId,
+      from: { id: user.id, username: user.username },
+      to: { id: targetUser.id, username: targetUser.username },
+      gameType,
+      bestOf: parseInt(bestOf) || 3
+    };
+
+    challenges.set(challengeId, challengeData);
+    io.to(targetUser.socketId).emit('challenge:received', challengeData);
+  });
+
+  // Respond to challenge
+  socket.on('challenge:respond', ({ challengeId, accepted }) => {
+    const challenge = challenges.get(challengeId);
+    if (!challenge) return;
+
+    challenges.delete(challengeId);
+
+    const fromUser = Array.from(sockets.values()).find(u => u.id === challenge.from.id);
+    const toUser = user;
+
+    if (!accepted) {
+      if (fromUser) {
+        io.to(fromUser.socketId).emit('challenge:declined', {
+          username: toUser.username
+        });
+      }
+      return;
+    }
+
+    if (!fromUser || fromUser.status !== 'idle' || toUser.status !== 'idle') {
+      socket.emit('challenge:error', { message: 'Impossible de lancer la partie.' });
+      if (fromUser) io.to(fromUser.socketId).emit('challenge:error', { message: 'Partie annulée.' });
+      return;
+    }
+
+    const roomId = `room_${Date.now()}`;
+    fromUser.status = 'in_game';
+    toUser.status = 'in_game';
+
+    const startScore = challenge.gameType === '301' ? 301 : 501;
+    const bestOf = challenge.bestOf || 3;
+    const legsToWin = Math.ceil(bestOf / 2);
+
+    const gameState = {
+      roomId,
+      gameType: challenge.gameType,
+      bestOf,
+      legsToWin,
+      startScore,
+      phase: 'bull_off', // Starts with Bull-Off (corking)
+      bullOffThrows: {},
+      currentLegNumber: 1,
+      firstLegStarterId: null,
+      secondLegStarterId: null,
+      turnPlayerId: null,
+      players: [
+        {
+          id: fromUser.id,
+          username: fromUser.username,
+          currentScore: startScore,
+          currentTurnDarts: [],
+          legsWon: 0,
+          totalThrows: 0
+        },
+        {
+          id: toUser.id,
+          username: toUser.username,
+          currentScore: startScore,
+          currentTurnDarts: [],
+          legsWon: 0,
+          totalThrows: 0
+        }
+      ]
+    };
+
+    games.set(roomId, gameState);
+
+    const fromSocket = io.sockets.sockets.get(fromUser.socketId);
+    if (fromSocket) fromSocket.join(roomId);
+    socket.join(roomId);
+
+    io.to(roomId).emit('game:start', {
+      roomId,
+      gameState,
+      initiatorId: fromUser.id
+    });
+
+    broadcastLobby();
+  });
+
+  // Bull-Off Throw event (closest to center starts leg 1)
+  socket.on('game:bull_off_throw', ({ roomId, distance, dart }) => {
+    const game = games.get(roomId);
+    if (!game || game.phase !== 'bull_off') return;
+
+    game.bullOffThrows[user.id] = {
+      distance: Math.round(distance),
+      dart,
+      username: user.username
+    };
+
+    io.to(roomId).emit('game:bull_off_update', {
+      playerId: user.id,
+      username: user.username,
+      distance: Math.round(distance),
+      dart
+    });
+
+    // Check if both players have thrown at the Bull
+    if (Object.keys(game.bullOffThrows).length >= 2) {
+      const p1 = game.players[0];
+      const p2 = game.players[1];
+      const t1 = game.bullOffThrows[p1.id];
+      const t2 = game.bullOffThrows[p2.id];
+
+      const winnerId = t1.distance <= t2.distance ? p1.id : p2.id;
+      const loserId = winnerId === p1.id ? p2.id : p1.id;
+      const winnerName = winnerId === p1.id ? p1.username : p2.username;
+
+      game.firstLegStarterId = winnerId;
+      game.secondLegStarterId = loserId;
+      game.turnPlayerId = winnerId;
+      game.phase = 'playing';
+
+      io.to(roomId).emit('game:bull_off_result', {
+        winnerId,
+        winnerName,
+        p1: { id: p1.id, username: p1.username, distance: t1.distance },
+        p2: { id: p2.id, username: p2.username, distance: t2.distance },
+        gameState: game
+      });
+    }
+  });
+
+  // WebRTC Signaling
+  socket.on('webrtc:signal', ({ roomId, signal }) => {
+    socket.to(roomId).emit('webrtc:signal', {
+      senderId: user.id,
+      signal
+    });
+  });
+
+  // Dart Throw event
+  socket.on('game:throw_dart', ({ roomId, dart }) => {
+    const game = games.get(roomId);
+    if (!game || game.phase !== 'playing') return;
+
+    const currentPlayer = game.players.find(p => p.id === game.turnPlayerId);
+    if (!currentPlayer || currentPlayer.id !== user.id) return;
+
+    const points = (dart.score || 0) * (dart.multiplier || 1);
+    const prevScore = currentPlayer.currentScore;
+    const nextScore = prevScore - points;
+
+    let isBust = false;
+    let isWin = false;
+
+    if (nextScore < 0 || nextScore === 1) {
+      isBust = true;
+    } else if (nextScore === 0) {
+      // Règle officielle PDC / DartsMa : La victoire de manche doit impérativement se faire sur un Double ou Bullseye
+      if (dart.multiplier === 2 || dart.ring === 'DOUBLE_BULL') {
+        isWin = true;
+      } else {
+        isBust = true; // Bust si terminaison sur simple ou triple
+      }
+    }
+
+    const recordedDart = {
+      ...dart,
+      points,
+      isBust,
+      isWin,
+      timestamp: Date.now()
+    };
+
+    currentPlayer.currentTurnDarts.push(recordedDart);
+    currentPlayer.totalThrows += 1;
+
+    const turnTotal = currentPlayer.currentTurnDarts.reduce((sum, d) => sum + (d.isBust ? 0 : d.points), 0);
+
+    if (isWin) {
+      currentPlayer.matchPoints = (currentPlayer.matchPoints || 0) + prevScore;
+      currentPlayer.currentScore = 0;
+      currentPlayer.legsWon += 1;
+
+      const isMatchOver = currentPlayer.legsWon >= game.legsToWin;
+
+      if (isMatchOver) {
+        io.to(roomId).emit('game:match_won', {
+          winnerId: currentPlayer.id,
+          winnerName: currentPlayer.username,
+          gameState: game,
+          dart: recordedDart,
+          turnTotal
+        });
+
+        // Record stats for both players
+        try {
+          const loserPlayer = game.players.find(p => p.id !== currentPlayer.id);
+          const totalScoredWinner = currentPlayer.matchPoints || (game.startScore * currentPlayer.legsWon);
+          const totalScoredLoser = loserPlayer 
+            ? (loserPlayer.matchPoints || ((game.startScore * loserPlayer.legsWon) + (game.startScore - loserPlayer.currentScore)))
+            : 0;
+
+          const updatedWinner = db.recordMatchResult(currentPlayer.id, {
+            isWin: true,
+            legsWon: currentPlayer.legsWon,
+            legsLost: loserPlayer ? loserPlayer.legsWon : 0,
+            dartsThrown: currentPlayer.totalThrows,
+            pointsScored: totalScoredWinner,
+            opponentName: loserPlayer ? loserPlayer.username : 'Adversaire',
+            gameType: game.gameType
+          });
+
+          if (loserPlayer) {
+            const updatedLoser = db.recordMatchResult(loserPlayer.id, {
+              isWin: false,
+              legsWon: loserPlayer.legsWon,
+              legsLost: currentPlayer.legsWon,
+              dartsThrown: loserPlayer.totalThrows,
+              pointsScored: totalScoredLoser,
+              opponentName: currentPlayer.username,
+              gameType: game.gameType
+            });
+            if (updatedLoser) {
+              const loserSocket = io.sockets.sockets.get(loserPlayer.id);
+              if (loserSocket) loserSocket.emit('user:stats_updated', updatedLoser);
+            }
+          }
+
+          if (updatedWinner) {
+            socket.emit('user:stats_updated', updatedWinner);
+          }
+        } catch (e) {
+          console.warn('Error recording online match stats:', e);
+        }
+      } else {
+        io.to(roomId).emit('game:leg_won', {
+          winnerId: currentPlayer.id,
+          winnerName: currentPlayer.username,
+          gameState: game,
+          dart: recordedDart,
+          turnTotal
+        });
+
+        // Prepare next leg with turn alternation
+        setTimeout(() => {
+          if (games.has(roomId)) {
+            game.players.forEach(p => {
+              p.currentScore = game.startScore;
+              p.currentTurnDarts = [];
+            });
+            game.currentLegNumber = (game.currentLegNumber || 1) + 1;
+            // Alternance des départs de manche : Manche impaire = vainqueur du bull, Manche paire = l'autre
+            game.turnPlayerId = (game.currentLegNumber % 2 === 1) ? game.firstLegStarterId : game.secondLegStarterId;
+            io.to(roomId).emit('game:next_leg', { gameState: game });
+          }
+        }, 4000);
+      }
+      return;
+    }
+
+    if (isBust) {
+      const priorPoints = currentPlayer.currentTurnDarts.slice(0, -1).reduce((s, d) => s + (d.isBust ? 0 : d.points), 0);
+      currentPlayer.currentScore = prevScore + priorPoints;
+
+      io.to(roomId).emit('game:bust', {
+        playerId: currentPlayer.id,
+        gameState: game,
+        dart: recordedDart,
+        turnTotal
+      });
+
+      setTimeout(() => {
+        if (games.has(roomId)) {
+          currentPlayer.currentTurnDarts = [];
+          game.turnPlayerId = game.players.find(p => p.id !== currentPlayer.id).id;
+          io.to(roomId).emit('game:update', { gameState: game, newRound: true });
+        }
+      }, 2000);
+      return;
+    }
+
+    currentPlayer.currentScore = nextScore;
+    currentPlayer.matchPoints = (currentPlayer.matchPoints || 0) + points;
+
+    if (currentPlayer.currentTurnDarts.length >= 3) {
+      io.to(roomId).emit('game:update', {
+        gameState: game,
+        lastDart: recordedDart,
+        turnTotal,
+        dartIndex: 3
+      });
+
+      setTimeout(() => {
+        if (games.has(roomId)) {
+          currentPlayer.currentTurnDarts = [];
+          game.turnPlayerId = game.players.find(p => p.id !== currentPlayer.id).id;
+          io.to(roomId).emit('game:update', { gameState: game, newRound: true });
+        }
+      }, 2000);
+    } else {
+      io.to(roomId).emit('game:update', {
+        gameState: game,
+        lastDart: recordedDart,
+        turnTotal,
+        dartIndex: currentPlayer.currentTurnDarts.length
+      });
+    }
+  });
+
+  // Undo last dart in turn
+  socket.on('game:undo_dart', ({ roomId }) => {
+    const game = games.get(roomId);
+    if (!game) return;
+    const currentPlayer = game.players.find(p => p.id === game.turnPlayerId);
+    if (!currentPlayer || currentPlayer.id !== user.id) return;
+
+    if (currentPlayer.currentTurnDarts.length > 0) {
+      const removed = currentPlayer.currentTurnDarts.pop();
+      if (!removed.isBust) {
+        currentPlayer.currentScore += removed.points;
+        currentPlayer.matchPoints = Math.max(0, (currentPlayer.matchPoints || 0) - removed.points);
+      }
+      currentPlayer.totalThrows = Math.max(0, currentPlayer.totalThrows - 1);
+      io.to(roomId).emit('game:update', { gameState: game });
+    }
+  });
+
+  // Forfeit / Abandon Game
+  socket.on('game:forfeit', ({ roomId }) => {
+    const game = games.get(roomId);
+    if (!game) return;
+
+    const forfeiter = game.players.find(p => p.id === user.id);
+    const winner = game.players.find(p => p.id !== user.id);
+
+    if (forfeiter && winner) {
+      try {
+        db.recordMatchResult(forfeiter.id, {
+          isWin: false,
+          legsWon: forfeiter.legsWon || 0,
+          legsLost: game.legsToWin,
+          dartsThrown: forfeiter.totalThrows || 0,
+          pointsScored: forfeiter.matchPoints || 0,
+          opponentName: winner.username,
+          gameType: game.gameType
+        });
+
+        db.recordMatchResult(winner.id, {
+          isWin: true,
+          legsWon: game.legsToWin,
+          legsLost: forfeiter.legsWon || 0,
+          dartsThrown: winner.totalThrows || 0,
+          pointsScored: winner.matchPoints || 0,
+          opponentName: forfeiter.username,
+          gameType: game.gameType
+        });
+      } catch (e) {
+        console.warn('Error recording forfeit stats:', e);
+      }
+
+      io.to(roomId).emit('game:forfeited', {
+        forfeiterId: forfeiter.id,
+        forfeiterName: forfeiter.username,
+        winnerId: winner.id,
+        winnerName: winner.username
+      });
+
+      games.delete(roomId);
+      user.status = 'idle';
+      const winnerUser = Array.from(sockets.values()).find(s => s.id === winner.id);
+      if (winnerUser) winnerUser.status = 'idle';
+      broadcastLobby();
+    }
+  });
+
+  // Leave Game
+  socket.on('game:leave', ({ roomId }) => {
+    if (games.has(roomId)) {
+      io.to(roomId).emit('game:opponent_left', { leaverId: user.id });
+      games.delete(roomId);
+    }
+    user.status = 'idle';
+    broadcastLobby();
+  });
+
+  // Companion Camera Sensor Socket Events
+  socket.on('companion:join', ({ roomId, deviceName }) => {
+    socket.isCompanion = true;
+    socket.companionRoomId = roomId;
+    socket.join(roomId);
+    io.to(roomId).emit('companion:status', {
+      connected: true,
+      deviceName: deviceName || 'Caméra Satellite',
+      socketId: socket.id
+    });
+  });
+
+  socket.on('companion:leave', ({ roomId }) => {
+    socket.leave(roomId);
+    socket.isCompanion = false;
+    socket.companionRoomId = null;
+    io.to(roomId).emit('companion:status', { connected: false });
+  });
+
+  socket.on('companion:dart_detected', ({ roomId, dart, deviceName, timestamp }) => {
+    io.to(roomId).emit('companion:dart_received', {
+      dart,
+      deviceName: deviceName || 'Caméra Satellite',
+      timestamp: timestamp || Date.now()
+    });
+  });
+
+  // Master device registers companion room (for Solo / Bot / PvP matches)
+  socket.on('master:register_companion_room', ({ roomId }) => {
+    socket.join(roomId);
+  });
+
+  // Disconnect
+  socket.on('disconnect', () => {
+    if (socket.companionRoomId) {
+      io.to(socket.companionRoomId).emit('companion:status', { connected: false });
+    }
+    for (const [roomId, game] of games.entries()) {
+      if (game.players.some(p => p.id === user.id)) {
+        io.to(roomId).emit('game:opponent_left', { leaverId: user.id });
+        games.delete(roomId);
+      }
+    }
+    sockets.delete(socket.id);
+    broadcastLobby();
+  });
+});
+
+// Fallback to client SPA for any non-API route
+app.use((req, res) => {
+  res.sendFile(path.join(clientDist, 'index.html'));
+});
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🎯 DartsMind Server running on http://0.0.0.0:${PORT}`);
+});

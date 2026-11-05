@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#facc15"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+    <linearGradient id="emerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+  
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect width="500" height="500" x="6" y="6" rx="106" fill="none" stroke="rgba(16, 185, 129, 0.4)" stroke-width="4"/>
+
+  <!-- Dartboard Circles -->
+  <circle cx="256" cy="256" r="210" fill="#09090b" stroke="#334155" stroke-width="8"/>
+  <circle cx="256" cy="256" r="190" fill="none" stroke="url(#emerald)" stroke-width="6"/>
+  <circle cx="256" cy="256" r="160" fill="none" stroke="url(#emerald)" stroke-width="3" stroke-dasharray="8 6"/>
+  <circle cx="256" cy="256" r="110" fill="none" stroke="url(#gold)" stroke-width="6"/>
+  <circle cx="256" cy="256" r="85" fill="none" stroke="url(#gold)" stroke-width="3" stroke-dasharray="8 6"/>
+
+  <!-- Radial Spider Wires -->
+  <g stroke="#475569" stroke-width="2.5" opacity="0.7">
+    <line x1="256" y1="46" x2="256" y2="466"/>
+    <line x1="46" y1="256" x2="466" y2="256"/>
+    <line x1="107" y1="107" x2="405" y2="405"/>
+    <line x1="107" y1="405" x2="405" y2="107"/>
+  </g>
+
+  <!-- Bulls -->
+  <circle cx="256" cy="256" r="42" fill="#15803d" stroke="#22c55e" stroke-width="4"/>
+  <circle cx="256" cy="256" r="20" fill="#dc2626" stroke="#f87171" stroke-width="4"/>
+  <circle cx="256" cy="256" r="4" fill="#ffffff"/>
+
+  <!-- Camera Vision Crosshair -->
+  <g stroke="#38bdf8" stroke-width="3" opacity="0.9">
+    <path d="M 196 216 L 196 196 L 216 196" fill="none"/>
+    <path d="M 316 216 L 316 196 L 296 196" fill="none"/>
+    <path d="M 196 296 L 196 316 L 216 316" fill="none"/>
+    <path d="M 316 296 L 316 316 L 296 316" fill="none"/>
+  </g>
+
+  <!-- Text DartsMa -->
+  <text x="256" y="440" text-anchor="middle" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" letter-spacing="4">DARTSMA</text>
+</svg>
+

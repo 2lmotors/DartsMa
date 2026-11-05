@@ -1,0 +1,16 @@
+services:
+  dartsma:
+    build: .
+    container_name: dartsma-live
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+    volumes:
+      - dartsma_data:/app/server
+
+volumes:
+  dartsma_data:
+
