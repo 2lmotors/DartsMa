@@ -75,7 +75,8 @@
       "gamesPlayed": 0,
       "wins": 0,
       "highestTurn": 0
-    }
+    },
+    "isEmailVerified": true
   },
   {
     "id": "usr_1793814870318_5hd8h",
@@ -97,7 +98,8 @@
       "averagePerDart": 0,
       "averagePerMatch": 0,
       "history": []
-    }
+    },
+    "isEmailVerified": true
   },
   {
     "id": "usr_1793815054796_1fw1g",
@@ -188,7 +190,8 @@
       "gamesPlayed": 0,
       "wins": 0,
       "highestTurn": 0
-    }
+    },
+    "isEmailVerified": true
   },
   {
     "id": "usr_1793815126068_hlpml",
@@ -213,7 +216,8 @@
       "gamesPlayed": 0,
       "wins": 0,
       "highestTurn": 0
-    }
+    },
+    "isEmailVerified": true
   },
   {
     "id": "usr_1793874693385_wjwam",
@@ -235,6 +239,7 @@
       "averagePerDart": 0,
       "averagePerMatch": 0,
       "history": []
-    }
+    },
+    "isEmailVerified": true
   }
 ]

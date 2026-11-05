@@ -171,3 +171,4 @@ export default function VoiceSettingsModal({ isOpen, onClose }) {
     </div>
   );
 }
+

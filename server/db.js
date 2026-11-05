@@ -53,6 +53,9 @@ class Database {
           if (!u.stats || !u.stats.history) {
             u.stats = { ...createDefaultStats(), ...(u.stats || {}) };
           }
+          if (u.isEmailVerified === undefined) {
+            u.isEmailVerified = true; // Rétro-compatibilité pour les comptes existants
+          }
           // Sanitize & enforce max 60 and points/darts average formula
           if (u.stats.totalDartsThrown > 0) {
             const raw = u.stats.totalPointsScored / u.stats.totalDartsThrown;
@@ -99,6 +102,7 @@ class Database {
         password: hashPassword('admin123'),
         role: 'admin',
         isBanned: false,
+        isEmailVerified: true,
         createdAt: new Date().toISOString(),
         stats: createDefaultStats()
       };
@@ -122,6 +126,9 @@ class Database {
     }
 
     const userId = 'usr_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24h
+
     const newUser = {
       id: userId,
       username: cleanUsername,
@@ -129,13 +136,19 @@ class Database {
       password: hashPassword(password),
       role: 'user',
       isBanned: false,
+      isEmailVerified: false,
+      verificationToken,
+      verificationTokenExpires,
       createdAt: new Date().toISOString(),
       stats: createDefaultStats()
     };
 
     this.users.set(userId, newUser);
     this.saveUsers();
-    return this.sanitizeUser(newUser);
+    return {
+      user: this.sanitizeUser(newUser),
+      verificationToken
+    };
   }
 
   login(identifier, password) {
@@ -160,7 +173,79 @@ class Database {
       throw new Error('Identifiant ou mot de passe incorrect.');
     }
 
+    if (found.isEmailVerified === false) {
+      const err = new Error('Votre adresse email n\'a pas encore été confirmée. Veuillez cliquer sur le lien reçu par email.');
+      err.code = 'EMAIL_NOT_VERIFIED';
+      err.userId = found.id;
+      err.email = found.email;
+      throw err;
+    }
+
     return this.sanitizeUser(found);
+  }
+
+  verifyEmailToken(token) {
+    if (!token || typeof token !== 'string') {
+      throw new Error('Jeton de validation manquant.');
+    }
+    const cleanToken = token.trim();
+    let found = null;
+    for (const u of this.users.values()) {
+      if (u.verificationToken === cleanToken) {
+        found = u;
+        break;
+      }
+    }
+
+    if (!found) {
+      throw new Error('Ce lien de validation est invalide ou a déjà été utilisé.');
+    }
+
+    if (found.verificationTokenExpires && Date.now() > found.verificationTokenExpires) {
+      throw new Error('Ce lien de validation a expiré (validité 24 heures).');
+    }
+
+    found.isEmailVerified = true;
+    delete found.verificationToken;
+    delete found.verificationTokenExpires;
+    this.saveUsers();
+    return this.sanitizeUser(found);
+  }
+
+  checkUserVerified(userId) {
+    const user = this.users.get(userId);
+    if (!user) return { exists: false, isVerified: false };
+    return {
+      exists: true,
+      isVerified: !!user.isEmailVerified,
+      user: user.isEmailVerified ? this.sanitizeUser(user) : null
+    };
+  }
+
+  resendVerification(identifier) {
+    const clean = (identifier || '').trim().toLowerCase();
+    let found = null;
+    for (const u of this.users.values()) {
+      if (u.id === identifier || u.email.toLowerCase() === clean || u.username.toLowerCase() === clean) {
+        found = u;
+        break;
+      }
+    }
+    if (!found) {
+      throw new Error('Utilisateur non trouvé.');
+    }
+    if (found.isEmailVerified) {
+      return { alreadyVerified: true, user: this.sanitizeUser(found) };
+    }
+    const token = crypto.randomBytes(32).toString('hex');
+    found.verificationToken = token;
+    found.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
+    this.saveUsers();
+    return {
+      alreadyVerified: false,
+      user: this.sanitizeUser(found),
+      verificationToken: token
+    };
   }
 
   recordMatchResult(userId, matchData) {

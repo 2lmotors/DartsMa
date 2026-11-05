@@ -74,6 +74,27 @@ export default function App() {
     };
   }, []);
 
+  // Détection automatique du retour après validation par email (lien ouvert dans le navigateur)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const isVerified = params.get('verified') === '1' || params.get('verified') === 'true';
+      const verifiedUserId = params.get('userId');
+
+      if (isVerified && verifiedUserId) {
+        fetch(`${BACKEND_URL}/api/auth/user/${verifiedUserId}`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.success && data.user) {
+              handleAuthSuccess(data.user);
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
+          })
+          .catch(e => console.error('Erreur chargement profil vérifié :', e));
+      }
+    } catch (e) {}
+  }, [socket]);
+
   useEffect(() => {
     const newSocket = io(BACKEND_URL, {
       transports: ['websocket', 'polling']
@@ -318,6 +339,7 @@ export default function App() {
       <AuthScreen
         onAuthSuccess={handleAuthSuccess}
         backendUrl={BACKEND_URL}
+        socket={socket}
       />
     );
   }

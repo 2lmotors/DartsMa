@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const os = require('os');
 const db = require('./db');
+const mailer = require('./mailer');
 
 const app = express();
 app.use(cors());
@@ -42,17 +43,163 @@ function broadcastLobby() {
 }
 
 // REST Auth Endpoints
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, originUrl } = req.body;
     if (!username || !email || !password) {
       return res.status(400).json({ error: 'Tous les champs sont requis.' });
     }
-    const user = db.register(username, email, password);
-    res.json({ success: true, user });
+    const { user, verificationToken } = db.register(username, email, password);
+
+    // Déterminer l'URL de base pour le lien de validation
+    const proto = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.get('host');
+    const base = originUrl || process.env.PUBLIC_URL || `${proto}://${host}`;
+    const verificationLink = `${base.replace(/\/$/, '')}/api/auth/verify-email?token=${verificationToken}`;
+
+    // Envoi de l'email de validation
+    const mailResult = await mailer.sendVerificationEmail({
+      email: user.email,
+      username: user.username,
+      verificationLink
+    });
+
+    res.json({
+      success: true,
+      requiresVerification: true,
+      user,
+      verificationLink: mailResult.simulated ? verificationLink : undefined,
+      simulated: !!mailResult.simulated
+    });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
+});
+
+app.get('/api/auth/verify-email', (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) {
+      return res.status(400).send('Jeton de validation manquant.');
+    }
+    const verifiedUser = db.verifyEmailToken(token);
+
+    // Diffusion en temps réel par WebSocket pour débloquer automatiquement le formulaire d'inscription en attente
+    io.emit('auth:verified_' + verifiedUser.id, verifiedUser);
+    io.emit('auth:verified', verifiedUser);
+
+    if (req.accepts('json') && !req.accepts('html')) {
+      return res.json({ success: true, user: verifiedUser });
+    }
+
+    // Redirection automatique dans l'application avec profil utilisateur connecté
+    const redirectUrl = `/?verified=1&userId=${verifiedUser.id}&username=${encodeURIComponent(verifiedUser.username)}`;
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="refresh" content="2;url=${redirectUrl}">
+        <title>Email Validé - DartsMa Pro</title>
+        <style>
+          body { background: #020617; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 16px; box-sizing: border-box; text-align: center; }
+          .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; padding: 36px 28px; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
+          .badge { width: 64px; height: 64px; background: #10b981; border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 16px; }
+          h2 { color: #ffffff; font-size: 22px; margin: 0 0 10px; font-weight: 800; }
+          p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px; }
+          .btn { display: inline-block; background: #10b981; color: #020617; font-weight: 900; font-size: 15px; padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35); }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="badge">🎯</div>
+          <h2>Adresse Email Validée !</h2>
+          <p>Félicitations <strong>${verifiedUser.username}</strong>, votre compte est désormais actif.<br>Vous allez être redirigé automatiquement dans l'application...</p>
+          <a href="${redirectUrl}" class="btn">Accéder à DartsMa Live</a>
+        </div>
+        <script>
+          setTimeout(function() { window.location.href = "${redirectUrl}"; }, 1200);
+        </script>
+      </body>
+      </html>
+    `);
+  } catch (err) {
+    res.status(400).send(`
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Erreur de Validation - DartsMa Pro</title>
+        <style>
+          body { background: #020617; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 16px; box-sizing: border-box; text-align: center; }
+          .card { background: #0f172a; border: 1px solid #e11d48; border-radius: 24px; padding: 36px 28px; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
+          .badge { width: 64px; height: 64px; background: #e11d48; border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 16px; }
+          h2 { color: #ffffff; font-size: 22px; margin: 0 0 10px; font-weight: 800; }
+          p { color: #fda4af; font-size: 14px; line-height: 1.6; margin: 0 0 24px; }
+          .btn { display: inline-block; background: #334155; color: #f8fafc; font-weight: 700; font-size: 14px; padding: 12px 24px; border-radius: 12px; text-decoration: none; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="badge">⚠️</div>
+          <h2>Lien invalide ou expiré</h2>
+          <p>${err.message}</p>
+          <a href="/" class="btn">Retour à la page d'accueil</a>
+        </div>
+      </body>
+      </html>
+    `);
+  }
+});
+
+app.get('/api/auth/check-verification', (req, res) => {
+  const { userId } = req.query;
+  if (!userId) {
+    return res.status(400).json({ error: 'userId requis' });
+  }
+  const result = db.checkUserVerified(userId);
+  res.json(result);
+});
+
+app.post('/api/auth/resend-verification', async (req, res) => {
+  try {
+    const { identifier, originUrl } = req.body;
+    if (!identifier) {
+      return res.status(400).json({ error: 'Identifiant ou email requis.' });
+    }
+    const result = db.resendVerification(identifier);
+    if (result.alreadyVerified) {
+      return res.json({ alreadyVerified: true, message: 'Ce compte est déjà validé.' });
+    }
+
+    const proto = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.get('host');
+    const base = originUrl || process.env.PUBLIC_URL || `${proto}://${host}`;
+    const verificationLink = `${base.replace(/\/$/, '')}/api/auth/verify-email?token=${result.verificationToken}`;
+
+    const mailResult = await mailer.sendVerificationEmail({
+      email: result.user.email,
+      username: result.user.username,
+      verificationLink
+    });
+
+    res.json({
+      success: true,
+      message: 'Un nouvel email de validation a été envoyé.',
+      verificationLink: mailResult.simulated ? verificationLink : undefined,
+      simulated: !!mailResult.simulated
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.get('/api/auth/user/:id', (req, res) => {
+  const user = db.getUserById(req.params.id);
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  res.json({ success: true, user });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -79,7 +226,7 @@ app.post('/api/auth/login', (req, res) => {
 
     res.json({ success: true, user });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ error: err.message, code: err.code, userId: err.userId, email: err.email });
   }
 });
 
